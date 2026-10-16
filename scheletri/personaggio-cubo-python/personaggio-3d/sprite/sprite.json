@@ -1,0 +1,11 @@
+{
+ "nome": "robott",
+ "direzioni": 8,
+ "fotogrammi_camminata": 8,
+ "altezza_metri": 1.8,
+ "larghezza": 192,
+ "altezza": 256,
+ "metri_per_pixel": 0.007875,
+ "piedi_px": 242.29,
+ "direzione_0": "di spalle: cammina lontano dalla camera; poi ogni passo e' 45 gradi verso destra"
+}

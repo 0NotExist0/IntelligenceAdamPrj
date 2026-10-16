@@ -1,0 +1,31 @@
+{
+  "titolo": "Personaggio controllabile su un cubo, con fisica vera (Python, pygame, senza installare niente)",
+  "linguaggio": "Python (Pygame)",
+  "cosaFaGia": [
+    "il personaggio e' Robott, il modello riggato di Unity, fotografato da Blender in 8 direzioni con la camminata",
+    "fisica: gravita', salto, spinta e frenata, velocita' massima",
+    "collisioni vere: sale sui gradini saltando, sbatte contro i lati, non passa attraverso",
+    "se esce dal bordo del cubo cade e riparte dal punto di partenza",
+    "camera in terza persona che gira attorno (Q/E o mouse) e segue il personaggio",
+    "ombra sotto i piedi per capire dove atterrera'"
+  ],
+  "come": "doppio clic su avvia.bat (oppure: python main.py)",
+  "serve": "solo pygame (gia' installato su questo computer)",
+  "file": {
+    "main.py": "la finestra, i tasti e il ciclo del gioco",
+    "fisica.py": "gravita', salto, attrito e collisioni: solo numeri, niente pygame (si prova da sola)",
+    "mondo.py": "il cubo e i gradini: per cambiare il livello si cambia solo qui",
+    "personaggio.py": "dai tasti a una direzione nel mondo, e la ripartenza se cade",
+    "disegno.py": "la camera e il 3D",
+    "figura.py": "le foto del personaggio fatte da Blender: quale direzione e quale passo mostrare",
+    "personaggio-3d/": "Robott: il modello 3D (robott.glb, per il pannello 3D dello Studio) e le 72 foto in sprite/",
+    "avvia.bat": "avvia il gioco"
+  },
+  "daFarePoi": [
+    "piattaforme che si muovono",
+    "casse da spingere, con la loro fisica",
+    "monete da raccogliere e punteggio",
+    "doppio salto e corsa",
+    "un altro personaggio: si converte con il pannello 3D dello Studio (Converti con Blender)"
+  ]
+}

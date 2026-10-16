@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: intelligence-adam
+    runtime: docker
+    plan: free
+    healthCheckPath: /health
+    envVars:
+      - key: STUDIO_ALLOW_LAN
+        value: "1"
+      - key: STUDIO_HOST
+        value: 0.0.0.0
+      - key: STUDIO_API_TOKEN
+        generateValue: true

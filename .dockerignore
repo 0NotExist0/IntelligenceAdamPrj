@@ -1,0 +1,17 @@
+.git
+.github
+.env
+.env.*
+!.env.example
+.studio-secrets.json
+.claude_memory.json
+claude_ui_config.json
+opencode.json
+opencode.jsonc
+dati
+node_modules
+tmp
+.tmp
+*.log
+*.pid
+test

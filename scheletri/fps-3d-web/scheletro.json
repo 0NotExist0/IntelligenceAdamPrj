@@ -1,0 +1,29 @@
+{
+  "titolo": "FPS 3D multiplayer per il web (Three.js, si gioca nel browser)",
+  "linguaggio": "JavaScript / Web (Three.js)",
+  "cosaFaGia": [
+    "mondo a blocchi in 3D",
+    "vista in prima persona con il blocco del mouse",
+    "movimento WASD, salto e collisioni",
+    "sparo con mirino",
+    "zombie che inseguono",
+    "piu' giocatori in rete, con punti e vita",
+    "server in localhost senza installare niente"
+  ],
+  "come": "doppio clic su avvia.bat (oppure node server.js) e apri http://localhost:8000, anche in due finestre",
+  "serve": "solo Node (Three.js e' gia' dentro la cartella vendor)",
+  "file": {
+    "index.html": "la pagina, il menu iniziale e l'interfaccia (vita, munizioni, punti)",
+    "gioco.js": "il gioco: mondo, giocatore, comandi, sparo, zombie, disegno",
+    "rete.js": "il collegamento con gli altri giocatori",
+    "server.js": "server dei file + partita condivisa (WebSocket scritto a mano)",
+    "vendor/": "Three.js, la libreria 3D: non si modifica"
+  },
+  "daFarePoi": [
+    "rompere e mettere blocchi",
+    "armi diverse e ricarica",
+    "vita e danno decisi dal server",
+    "mappa piu' grande o generata a caso",
+    "suoni e punteggio a fine partita"
+  ]
+}

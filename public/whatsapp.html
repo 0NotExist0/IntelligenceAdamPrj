@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WhatsApp Protettore 🛡️ | NotExist Intelligience Studio</title>
+  <link rel="stylesheet" href="/style.css">
+  <style>
+    /* Stili dedicati per la pagina separata WhatsApp Protettore */
+    html, body {
+      height: 100%;
+      width: 100%;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background-color: var(--bg-app);
+      font-family: var(--font-sans);
+      color: var(--text-primary);
+    }
+
+    .wa-standalone-layout {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      width: 100vw;
+      overflow: hidden;
+    }
+
+    /* Topbar dedicata della pagina separata */
+    .wa-navbar {
+      height: 52px;
+      min-height: 52px;
+      background: #11141a;
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      z-index: 20;
+    }
+
+    .wa-navbar-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .wa-nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .wa-nav-shield-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 16px;
+      box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+    }
+
+    .wa-nav-title {
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: -0.2px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .wa-nav-tag {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      background: rgba(16, 185, 129, 0.15);
+      color: #34d399;
+      padding: 2px 6px;
+      border-radius: 4px;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .wa-navbar-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .btn-return-studio {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      color: var(--text-secondary);
+      font-size: 12px;
+      text-decoration: none;
+      transition: var(--transition);
+    }
+
+    .btn-return-studio:hover {
+      background: var(--bg-card-hover);
+      color: var(--text-primary);
+      border-color: var(--claude-accent);
+    }
+
+    .wa-main-standalone {
+      flex: 1;
+      height: calc(100vh - 52px);
+      overflow: hidden;
+      display: flex;
+    }
+
+    .wa-container-standalone {
+      display: flex;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+  </style>
+</head>
+<body>
+  <div class="wa-standalone-layout">
+    <!-- Navbar Superiore Standalone -->
+    <header class="wa-navbar">
+      <div class="wa-navbar-left">
+        <a href="/" class="wa-nav-logo" title="Torna a NotExist Studio">
+          <div class="wa-nav-shield-icon">🛡️</div>
+          <div class="wa-nav-title">
+            <span>WhatsApp Protettore</span>
+            <span class="wa-nav-tag">Antifrode & Decifratore</span>
+          </div>
+        </a>
+      </div>
+
+      <div class="wa-navbar-right">
+        <div class="wa-status-badge" id="wa-status-badge">
+          <span class="status-dot wa-dot-disconnected" id="wa-status-dot"></span>
+          <span id="wa-status-text">Disconnesso</span>
+        </div>
+        <span class="whatsapp-alert-pill" id="wa-badge-alert" style="display:none">0 Allarmi</span>
+        <a href="/" class="btn-return-studio" title="Torna alla Dashboard NotExist Intelligience Studio">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="15 18 9 12 15 6"></polyline>
+          </svg>
+          <span>Torna a Adam Studio</span>
+        </a>
+      </div>
+    </header>
+
+    <!-- Workspace Principale WhatsApp -->
+    <div class="wa-main-standalone">
+      <div class="wa-container-standalone">
+        <!-- Sidebar sinistra: Controlli, Connessione e Contatti -->
+        <aside class="wa-sidebar">
+          <div class="wa-header">
+            <div class="wa-brand">
+              <span class="wa-brand-icon">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+                </svg>
+              </span>
+              <div class="wa-brand-meta">
+                <h3 class="wa-brand-title">Centro Sicurezza</h3>
+                <small style="color:var(--text-muted)">Monitoraggio Real-Time</small>
+              </div>
+            </div>
+          </div>
+
+          <!-- Comandi Rapidi -->
+          <div class="wa-quick-actions">
+            <button class="btn btn-primary btn-sm" id="btn-wa-connect" type="button" title="Avvia sessione browser WhatsApp Web">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+              </svg>
+              <span>Connetti Web</span>
+            </button>
+            <button class="btn btn-secondary btn-sm" id="btn-wa-sync" type="button" title="Sincronizza tutte le chat aperte su WhatsApp Web">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="23 4 23 10 17 10"></polyline>
+                <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+              </svg>
+              <span>Sincronizza</span>
+            </button>
+            <button class="btn btn-secondary btn-sm" id="btn-wa-disconnect" type="button" style="display:none" title="Chiudi sessione WhatsApp Web">
+              <span>Disconnetti</span>
+            </button>
+            <div class="wa-scenario-dropdown-wrap">
+              <button class="btn btn-secondary btn-sm" id="btn-wa-scenari" type="button" title="Simula uno scenario di prova reale">
+                <span>Simula Test ⚡</span>
+              </button>
+              <div class="wa-scenari-menu" id="wa-scenari-menu" hidden></div>
+            </div>
+            <button class="btn btn-icon btn-sm" id="btn-wa-clear" type="button" title="Pulisci cronologia messaggi">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="3 6 5 6 21 6"></polyline>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+              </svg>
+            </button>
+          </div>
+
+          <!-- Lista Tutte le Chat -->
+          <div class="wa-contacts-section">
+            <div class="wa-contacts-header">
+              <span>Tutte le Chat (<span id="wa-contacts-count">0</span>)</span>
+            </div>
+            <div class="wa-contacts-search">
+              <input type="text" id="wa-search-contacts" placeholder="🔍 Cerca tra tutte le chat..." autocomplete="off" />
+            </div>
+            <div class="wa-filter-chips">
+              <button type="button" class="wa-filter-chip active" data-filter="tutti">Tutte</button>
+              <button type="button" class="wa-filter-chip chip-danger" data-filter="pericolo">🚨 Pericolo</button>
+              <button type="button" class="wa-filter-chip" data-filter="non_letti">Non lette</button>
+            </div>
+            <div class="wa-contacts-list" id="wa-contacts-list">
+              <div class="wa-empty-contacts">Caricamento chat in corso...</div>
+            </div>
+          </div>
+        </aside>
+
+        <!-- Area Centrale & Destra: Chat Stream + Verdetto Protettore -->
+        <main class="wa-main">
+          <!-- Box QR Code se in attesa di scansione -->
+          <div class="wa-qr-overlay" id="wa-qr-overlay" hidden>
+            <div class="wa-qr-card">
+              <div class="wa-qr-header">
+                <h4>Scansiona il QR Code con WhatsApp</h4>
+                <button class="modal-close" id="btn-close-qr">&times;</button>
+              </div>
+              <p class="wa-qr-hint">Apri WhatsApp sul tuo smartphone &gt; Menu ⋮ o Impostazioni &gt; Dispositivi collegati &gt; Collega un dispositivo</p>
+              <div class="wa-qr-image-wrap">
+                <img id="wa-qr-img" src="" alt="QR Code WhatsApp" />
+              </div>
+              <div class="wa-qr-footer">
+                <small>La sessione rimarrà memorizzata sul tuo computer in modo sicuro per le connessioni future.</small>
+              </div>
+            </div>
+          </div>
+
+          <!-- Intestazione Chat Corrente -->
+          <div class="wa-chat-header">
+            <div class="wa-chat-user-info">
+              <div class="wa-avatar" id="wa-current-avatar">🛡️</div>
+              <div>
+                <h4 class="wa-current-contact" id="wa-current-contact">Seleziona o Incolla una Chat</h4>
+                <span class="wa-current-threat" id="wa-current-threat">Scudo Protettore attivo e vigile</span>
+              </div>
+            </div>
+            <div class="wa-chat-header-actions">
+              <span class="meta-pill" id="wa-shield-status-pill">Scudo attivo</span>
+            </div>
+          </div>
+
+          <!-- Griglia Split: Messaggi & Verdetto -->
+          <div class="wa-body-split">
+            <!-- Flusso Messaggi & Composer -->
+            <div class="wa-messages-column">
+              <div class="wa-messages-stream" id="wa-messages-stream">
+                <div class="wa-welcome-box" id="wa-welcome-box">
+                  <div class="wa-welcome-shield">🛡️</div>
+                  <h3>WhatsApp Protettore</h3>
+                  <p>Il tuo consulente personale di sicurezza: decifra le reali intenzioni, smaschera tentativi di truffa e disinnesca situazioni spiacevoli.</p>
+                  <div class="wa-welcome-features">
+                    <div class="wa-feat-item">
+                      <span class="feat-icon">🔍</span>
+                      <div><strong>Cosa intende davvero:</strong> legge tra le righe per svelare l'obiettivo reale del mittente.</div>
+                    </div>
+                    <div class="wa-feat-item">
+                      <span class="feat-icon">🚨</span>
+                      <div><strong>Allarme Truffe:</strong> rileva finti figli, furti di codici OTP, finti corrieri e phishing bancario.</div>
+                    </div>
+                    <div class="wa-feat-item">
+                      <span class="feat-icon">💢</span>
+                      <div><strong>Radar Rabbia:</strong> capisce se il tono è arrabbiato, minaccioso, manipolativo o passivo-aggressivo.</div>
+                    </div>
+                    <div class="wa-feat-item">
+                      <span class="feat-icon">🧠</span>
+                      <div><strong>Riconoscimento Schemi:</strong> individua urgenza psicologica, senso di colpa e isolamento forzato.</div>
+                    </div>
+                  </div>
+                  <div class="wa-welcome-cta">
+                    <button class="btn btn-primary" id="btn-wa-quick-demo" type="button">Prova Demo Rapida (Truffa Finto Figlio)</button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Box di Inserimento Manuale -->
+              <div class="wa-composer">
+                <div class="wa-composer-head">
+                  <span>Incolla qualsiasi messaggio ricevuto su WhatsApp da esaminare:</span>
+                  <input type="text" id="wa-input-sender" placeholder="Nome o numero mittente (opzionale)" />
+                </div>
+                <div class="wa-composer-row">
+                  <textarea id="wa-input-text" rows="2" placeholder="Incolla qui il testo del messaggio da analizzare..."></textarea>
+                  <button class="btn btn-primary" id="btn-wa-analyze-manual" type="button" title="Analizza subito con il Protettore">
+                    <span>Esamina 🛡️</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Scheda del Verdetto del Protettore -->
+            <div class="wa-analysis-column" id="wa-analysis-column">
+              <div class="wa-shield-card" id="wa-shield-card">
+                <div class="wa-shield-card-head">
+                  <div class="wa-shield-title">
+                    <span class="wa-shield-icon">🛡️</span>
+                    <span>Verdetto del Protettore</span>
+                  </div>
+                  <span class="wa-risk-badge badge-basso" id="wa-detail-risk-badge">Basso</span>
+                </div>
+
+                <div class="wa-shield-card-body" id="wa-shield-card-body">
+                  <!-- 1. Intenzione Reale -->
+                  <div class="wa-report-section">
+                    <label class="wa-section-label">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>
+                      </svg>
+                      <span>Cosa intende VERAMENTE:</span>
+                    </label>
+                    <div class="wa-section-content" id="wa-detail-intenzione">
+                      Seleziona una chat o incolla un messaggio per scoprire le reali intenzioni dell'interlocutore.
+                    </div>
+                  </div>
+
+                  <!-- 2. Truffa & Sicurezza -->
+                  <div class="wa-report-section">
+                    <label class="wa-section-label">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                        <line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line>
+                      </svg>
+                      <span>Allerta Truffa / Sicurezza:</span>
+                    </label>
+                    <div class="wa-section-content" id="wa-detail-truffa">
+                      Nessun pericolo o truffa rilevata.
+                    </div>
+                  </div>
+
+                  <!-- 3. Tono & Rabbia -->
+                  <div class="wa-report-section">
+                    <label class="wa-section-label">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle><path d="M8 15s1.5 2 4 2 4-2 4-2"></path><line x1="9" y1="9" x2="9.01" y2="9"></line><line x1="15" y1="9" x2="15.01" y2="9"></line>
+                      </svg>
+                      <span>Stato Emotivo & Rabbia:</span>
+                    </label>
+                    <div class="wa-section-content" id="wa-detail-emozione">
+                      Tono neutro o tranquillo.
+                    </div>
+                  </div>
+
+                  <!-- 4. Schemi comportamentali -->
+                  <div class="wa-report-section">
+                    <label class="wa-section-label">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                      </svg>
+                      <span>Schemi e Pattern Notati:</span>
+                    </label>
+                    <div class="wa-section-content" id="wa-detail-schemi">
+                      Nessun pattern anomalo o manipolatorio notato.
+                    </div>
+                  </div>
+
+                  <!-- 5. Consiglio Strategico -->
+                  <div class="wa-report-section wa-advice-box">
+                    <label class="wa-section-label">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                      </svg>
+                      <span>Consiglio Strategico:</span>
+                    </label>
+                    <div class="wa-section-content" id="wa-detail-consiglio">
+                      Pronto per esaminare qualsiasi messaggio o connettersi alla sessione WhatsApp Web.
+                    </div>
+                  </div>
+
+                  <!-- 6. Risposta Suggerita -->
+                  <div class="wa-report-section wa-reply-box">
+                    <div class="wa-reply-head">
+                      <label class="wa-section-label">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <polyline points="9 10 4 15 9 20"></polyline><path d="M20 4v7a4 4 0 0 1-4 4H4"></path>
+                        </svg>
+                        <span>Risposta Sicura Consigliata:</span>
+                      </label>
+                      <button class="btn-copy-reply" id="btn-copy-wa-reply" type="button" title="Copia risposta negli appunti">Copia</button>
+                    </div>
+                    <div class="wa-reply-content" id="wa-detail-risposta">
+                      (Nessuna risposta necessaria)
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+  </div>
+
+  <script src="/whatsapp-ui.js"></script>
+  <script src="/whatsapp-page.js"></script>
+</body>
+</html>

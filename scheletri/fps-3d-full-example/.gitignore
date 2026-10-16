@@ -1,0 +1,23 @@
+# Dependencies
+node_modules/
+
+# Production build output
+dist/
+
+# Local env files
+.env
+.env.local
+
+# Logs
+*.log
+npm-debug.log*
+
+# System and Editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Blender auto-backups
+*.blend1
+*.blend2

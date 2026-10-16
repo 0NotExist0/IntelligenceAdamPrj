@@ -1,0 +1,1 @@
+APDF e il backend cloud opzionale per OCR, generazione ed elaborazione PDF, link personalizzati, analytics di lettura, annotazioni, moduli e automazioni tramite REST, MCP e webhook. Adam deve preferire l'elaborazione locale per privacy e usare APDF soltanto quando servono funzionalita cloud. L'autenticazione usa la variabile APDF_API_TOKEN.

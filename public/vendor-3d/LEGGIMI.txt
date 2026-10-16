@@ -1,0 +1,4 @@
+three.js r185 (0.185.1), licenza MIT (LICENSE-three.txt).
+Copiati il 18/9/2026 da una copia gia presente sul computer (Desktop\Rigger
+ode_modules	hree): niente scaricato.
+Servono al pannello 3D dello Studio (public/vista-3d.html): il visore, il caricatore GLB e i controlli per girare la vista.

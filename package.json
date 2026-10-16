@@ -1,0 +1,40 @@
+{
+  "name": "notexist-intelligience-studio",
+  "version": "1.0.0",
+  "description": "Interfaccia grafica desktop per Claude Code - NotExist Intelligience Studio",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "pretest": "node test/gpt-oss-agent.test.js",
+    "test:dialogo": "node test/dialogo-guidato.test.js",
+    "test:gpt-oss": "node test/gpt-oss-agent.test.js",
+    "test": "node test/pdf-agent.test.js && node test/model-provider-picker.test.js && node test/fcc-proxy.test.js && node test/git-push-verificato.test.js && node test/apprendimento-memoria.test.js && node test/rilevatore-risposte-incomplete.test.js && node test/sicurezza-server.test.js && node test/confronto-misure.test.js && node test/collaudatore.test.js && node test/istantanee.test.js && node test/guardiano-letture.test.js && node test/pertinenza.test.js && node test/scheletri-copia.test.js && node test/scrittura-live.test.js && node test/capo-progetto.test.js && node test/cambiamenti.test.js && node test/ripristina.test.js && node test/archivio-chat.test.js && node test/editor-visivo.test.js && node test/sveglie.test.js && node test/regole-esame.test.js && node test/programmatore.test.js && node test/siti-consigliati.test.js && node test/documentazione.test.js && node test/suggerimenti-prossimi-passi.test.js && node test/whatsapp-protettore.test.js && node test/openrouter.test.js && node test/proxy-openai.test.js && node test/vision-router.test.js && node test/sonda.test.js && node test/console-anteprima.test.js && node test/aspetto.test.js && node test/schermata-leggera.test.js && node test/esploratrice.test.js && node test/cervello.test.js && node test/requisiti.test.js && node test/prova-python.test.js && node test/quadro.test.js && node test/texture.test.js && node test/modelli.test.js && node test/scheletri.test.js && node test/personaggio-cubo.test.js && node test/personaggio-3d.test.js && node test/verifica.test.js && node test/flusso-completo.test.js && node test/allegati-chat.test.js",
+    "test:model-picker": "node test/model-provider-picker.test.js",
+    "test:fcc-proxy": "node test/fcc-proxy.test.js",
+    "test:git-push": "node test/git-push-verificato.test.js",
+    "test:allegati": "node test/allegati-chat.test.js",
+    "test:esploratrice": "node test/esploratrice.test.js",
+    "test:unit": "node test/apprendimento-memoria.test.js && node test/rilevatore-risposte-incomplete.test.js && node test/confronto-misure.test.js && node test/collaudatore.test.js && node test/istantanee.test.js && node test/guardiano-letture.test.js && node test/pertinenza.test.js && node test/scheletri-copia.test.js && node test/scrittura-live.test.js && node test/capo-progetto.test.js && node test/cambiamenti.test.js && node test/ripristina.test.js && node test/archivio-chat.test.js && node test/editor-visivo.test.js && node test/sveglie.test.js && node test/regole-esame.test.js && node test/programmatore.test.js && node test/siti-consigliati.test.js && node test/documentazione.test.js && node test/suggerimenti-prossimi-passi.test.js && node test/whatsapp-protettore.test.js && node test/openrouter.test.js && node test/proxy-openai.test.js && node test/vision-router.test.js && node test/limiti-claude-code.test.js && node test/cervello.test.js",
+    "test:cervello": "node test/cervello.test.js && node test/cervello-python.test.js && node test/cervello-unity.test.js && node test/unity-mcp.test.js && node test/esperti.test.js && node test/schermo-vuoto.test.js && node test/requisiti.test.js && node test/prova-python.test.js && node test/quadro.test.js && node test/texture.test.js && node test/modelli.test.js && node test/scheletri.test.js && node test/personaggio-cubo.test.js && node test/personaggio-3d.test.js && node test/documentazione.test.js && node test/verifica.test.js",
+    "test:unity-mcp": "node test/unity-mcp.test.js && node test/unity-mcp-runtime.test.js",
+    "test:sonda": "node test/sonda.test.js && node test/console-anteprima.test.js && node test/aspetto.test.js && node test/schermata-leggera.test.js",
+    "test:api": "node test/flusso-completo.test.js",
+    "test:pdf": "node test/pdf-agent.test.js",
+    "test:live": "node test/flusso-live.test.js",
+    "test:semgrep": "node test/semgrep.test.js"
+  },
+  "dependencies": {
+    "@xterm/addon-fit": "^0.11.0",
+    "@xterm/addon-web-links": "^0.12.0",
+    "@xterm/xterm": "^6.0.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "node-pty": "^1.1.0",
+    "pdf-parse": "2.4.5",
+    "puppeteer-core": "^25.10.0",
+    "ws": "^8.18.0"
+  },
+  "author": "0Not_Exist0",
+  "license": "MIT"
+}

@@ -1,0 +1,28 @@
+{
+  "titolo": "FPS 3D multiplayer in Python (pygame, senza installare niente)",
+  "linguaggio": "Python (Pygame)",
+  "cosaFaGia": [
+    "vista in prima persona in 3D con i raggi (raycasting)",
+    "mondo a blocchi con muri e corridoi",
+    "movimento WASD e mouse",
+    "sparo con mirino",
+    "zombie che inseguono",
+    "piu' giocatori in rete, con punti e vita",
+    "server della partita in Python puro"
+  ],
+  "come": "doppio clic su avvia.bat (oppure: python server.py in una finestra e python main.py nelle altre)",
+  "serve": "solo pygame (gia' installato su questo computer)",
+  "file": {
+    "main.py": "il gioco: comandi, motore 3D a raggi, sparo, zombie, interfaccia",
+    "mondo.py": "la mappa, usata sia dal gioco sia dal server",
+    "server.py": "la partita condivisa: giocatori, zombie, vita e punti",
+    "avvia.bat": "avvia server e gioco insieme"
+  },
+  "daFarePoi": [
+    "texture sui muri al posto dei colori",
+    "armi diverse e ricarica",
+    "blocchi che si rompono",
+    "mappa piu' grande o generata a caso",
+    "suoni e schermata di fine partita"
+  ]
+}

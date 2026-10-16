@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<title>Vista 3D</title>
+<!--
+  NotExist Intelligience Studio - il pannello 3D (colonna di destra, scheda "3D").
+  Richiesta dell'utente (18/9/2026): vedere il personaggio in 3D accanto al file dal vivo, con il
+  rendering di Blender. Qui il modello (GLB, preparato da Blender con strumenti/personaggio.js) si
+  gira col mouse e si animano i suoi movimenti; "Rendi con Blender" chiede a Blender un'immagine di
+  qualita' DALLO STESSO PUNTO DI VISTA. three.js r185 sta in /vendor-3d (niente scaricato da internet).
+-->
+<script type="importmap">
+{ "imports": { "three": "/vendor-3d/three.module.min.js" } }
+</script>
+<style>
+  :root { --sfondo: #0c0d10; --barra: #121418; --bordo: #242832; --testo: #f3f4f6; --secondario: #9ca3af;
+          --spento: #6b7280; --accento: #e07a5f; --ok: #22c55e; --errore: #ef4444; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--sfondo); color: var(--testo);
+               font: 12px 'Inter', -apple-system, 'Segoe UI', sans-serif; overflow: hidden; }
+  #barra { height: 38px; display: flex; align-items: center; gap: 6px; padding: 0 8px;
+           background: var(--barra); border-bottom: 1px solid var(--bordo); }
+  select, button, input { background: #15171d; color: var(--testo); border: 1px solid var(--bordo);
+                          border-radius: 5px; font: inherit; padding: 4px 7px; }
+  button { cursor: pointer; }
+  button:hover { border-color: var(--accento); }
+  button.primario { background: var(--accento); border-color: var(--accento); color: #111; font-weight: 600; }
+  button:disabled { opacity: 0.5; cursor: default; }
+  #modello { max-width: 38%; }
+  #scena { position: absolute; top: 38px; left: 0; right: 0; bottom: 24px; }
+  #scena canvas { display: block; width: 100%; height: 100%; }
+  #stato { position: absolute; left: 0; right: 0; bottom: 0; height: 24px; line-height: 24px; padding: 0 10px;
+           color: var(--secondario); background: var(--barra); border-top: 1px solid var(--bordo);
+           white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #vuoto { position: absolute; top: 38px; left: 0; right: 0; bottom: 24px; display: none; padding: 28px 22px;
+           color: var(--secondario); line-height: 1.6; }
+  #vuoto h3 { color: var(--testo); margin: 0 0 8px; font-size: 14px; }
+  #vuoto .riga { display: flex; gap: 6px; margin-top: 12px; }
+  #vuoto input { flex: 1; min-width: 0; }
+  #rendering { position: absolute; top: 46px; right: 8px; width: min(62%, 420px); display: none;
+               background: var(--barra); border: 1px solid var(--bordo); border-radius: 8px; overflow: hidden;
+               box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+  #rendering .testa { display: flex; align-items: center; justify-content: space-between; padding: 6px 8px;
+                      color: var(--secondario); border-bottom: 1px solid var(--bordo); }
+  #rendering img { display: block; width: 100%; }
+  #rendering .attesa { padding: 26px 12px; text-align: center; color: var(--secondario); }
+  .errore { color: var(--errore); }
+  /* senza modelli restano solo la ricarica e la casella per convertire: gli altri comandi non fanno niente */
+  body.senza-modello #modello, body.senza-modello #animazione, body.senza-modello #pausa, body.senza-modello #rendi { display: none; }
+</style>
+</head>
+<body>
+<div id="barra">
+  <select id="modello" title="Il modello 3D del progetto"></select>
+  <select id="animazione" title="Il movimento da mostrare"></select>
+  <button id="pausa" title="Ferma o fai ripartire il movimento">&#10074;&#10074;</button>
+  <button id="rendi" class="primario" title="Un'immagine di qualita' fatta da Blender, da questo stesso punto di vista">Rendi con Blender</button>
+  <button id="ricarica" title="Ricarica il modello">&#8635;</button>
+</div>
+<div id="scena"></div>
+<div id="vuoto">
+  <h3>Nessun modello 3D nel progetto</h3>
+  Blender puo' convertire un personaggio riggato (per esempio quelli di Unity, in formato FBX): lo porta
+  a 1,80 m, gli abbassa le braccia, gli costruisce una camminata e prepara anche le immagini per il gioco.
+  <div class="riga">
+    <input id="fbx" placeholder="percorso del file .fbx (per esempio ...\Personaggi\Robott\Robott.fbx)">
+    <button id="converti" class="primario">Converti con Blender</button>
+  </div>
+  <div id="esito-conversione" style="margin-top:10px"></div>
+</div>
+<div id="rendering">
+  <div class="testa"><span id="rendering-titolo">Blender</span><button id="chiudi-rendering">&#10005;</button></div>
+  <div id="rendering-corpo"></div>
+</div>
+<div id="stato">Pronto.</div>
+
+<script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from '/vendor-3d/addons/loaders/GLTFLoader.js';
+import { OrbitControls } from '/vendor-3d/addons/controls/OrbitControls.js';
+
+const $ = (id) => document.getElementById(id);
+const elScena = $('scena');
+const stato = (testo, errore) => { $('stato').textContent = testo; $('stato').className = errore ? 'errore' : ''; };
+
+// ---------------------------------------------------------------- la scena
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
+renderer.shadowMap.enabled = true;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+elScena.appendChild(renderer.domElement);
+
+const scena = new THREE.Scene();
+scena.background = new THREE.Color(0x14161c);
+const camera = new THREE.PerspectiveCamera(40, 1, 0.01, 500);
+camera.position.set(2.4, 1.7, 3.0);
+const controlli = new OrbitControls(camera, renderer.domElement);
+controlli.target.set(0, 0.9, 0);
+controlli.enableDamping = true;
+
+scena.add(new THREE.HemisphereLight(0xdde6ff, 0x1a1a22, 1.4));
+const sole = new THREE.DirectionalLight(0xffffff, 2.2);
+sole.position.set(3, 6, 4);
+sole.castShadow = true;
+sole.shadow.mapSize.set(1024, 1024);
+scena.add(sole);
+const pavimento = new THREE.Mesh(new THREE.CircleGeometry(4, 48), new THREE.MeshStandardMaterial({ color: 0x1b1e26, roughness: 0.9 }));
+pavimento.rotation.x = -Math.PI / 2;
+pavimento.receiveShadow = true;
+scena.add(pavimento);
+const griglia = new THREE.GridHelper(8, 16, 0x3a3f4d, 0x262a35);
+griglia.position.y = 0.002;
+scena.add(griglia);
+
+function adatta() {
+  const l = elScena.clientWidth || 1;
+  const a = elScena.clientHeight || 1;
+  renderer.setSize(l, a, false);
+  camera.aspect = l / a;
+  camera.updateProjectionMatrix();
+}
+new ResizeObserver(adatta).observe(elScena);
+adatta();
+
+// ---------------------------------------------------------------- il modello
+const caricatore = new GLTFLoader();
+let modello = null;
+let miscelatore = null;
+let clip = [];
+let azione = null;
+let percorsoAttuale = '';
+let inPausa = false;
+const orologio = new THREE.Clock();
+
+function inquadra(oggetto) {
+  const scatola = new THREE.Box3().setFromObject(oggetto);
+  const misura = scatola.getSize(new THREE.Vector3());
+  const centro = scatola.getCenter(new THREE.Vector3());
+  const lato = Math.max(misura.x, misura.y, misura.z) || 1;
+  const distanza = lato / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2))) * 1.35;
+  controlli.target.copy(centro);
+  camera.position.set(centro.x + distanza * 0.55, centro.y + lato * 0.25, centro.z + distanza * 0.85);
+  camera.near = distanza / 100;
+  camera.far = distanza * 50;
+  camera.updateProjectionMatrix();
+  controlli.update();
+}
+
+function triangoli(oggetto) {
+  let n = 0;
+  oggetto.traverse((o) => {
+    if (o.isMesh && o.geometry) n += (o.geometry.index ? o.geometry.index.count : o.geometry.attributes.position.count) / 3;
+  });
+  return Math.round(n);
+}
+
+function suona(nome) {
+  if (!miscelatore) return;
+  const scelto = clip.find((c) => c.name === nome) || clip[0];
+  if (azione) azione.stop();
+  azione = scelto ? miscelatore.clipAction(scelto) : null;
+  if (azione) azione.play();
+}
+
+function carica(percorso, mantieniVista) {
+  if (!percorso) return;
+  stato('Carico ' + percorso.split('/').pop() + '...');
+  caricatore.load('/api/vista3d/file?percorso=' + encodeURIComponent(percorso), (gltf) => {
+    if (modello) scena.remove(modello);
+    modello = gltf.scene;
+    modello.traverse((o) => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
+    scena.add(modello);
+    clip = gltf.animations || [];
+    miscelatore = clip.length ? new THREE.AnimationMixer(modello) : null;
+    const scelta = $('animazione');
+    const prima = scelta.value;
+    scelta.innerHTML = clip.length ? clip.map((c) => '<option>' + c.name + '</option>').join('') : '<option value="">nessun movimento</option>';
+    const preferita = clip.find((c) => c.name === prima) || clip.find((c) => /cammin/i.test(c.name)) || clip[0];
+    if (preferita) scelta.value = preferita.name;
+    suona(scelta.value);
+    if (!mantieniVista || percorso !== percorsoAttuale) inquadra(modello);
+    percorsoAttuale = percorso;
+    stato(percorso.split('/').pop() + ': ' + triangoli(modello).toLocaleString('it-IT') + ' triangoli, ' +
+      clip.length + (clip.length === 1 ? ' movimento' : ' movimenti') + '. Trascina per girare, rotella per avvicinarti.');
+  }, undefined, (errore) => stato('Non riesco ad aprire il modello: ' + (errore && errore.message || errore), true));
+}
+
+async function elenco(scegli) {
+  let modelli = [];
+  try { modelli = await (await fetch('/api/vista3d/modelli')).json(); } catch (e) { modelli = []; }
+  const scelta = $('modello');
+  const prima = scelta.value;
+  scelta.innerHTML = modelli.map((m) => '<option value="' + m.percorso + '">' + m.nome + '</option>').join('');
+  $('vuoto').style.display = modelli.length ? 'none' : 'block';
+  elScena.style.visibility = modelli.length ? 'visible' : 'hidden';
+  document.body.classList.toggle('senza-modello', !modelli.length);
+  if (!modelli.length) { stato('Nessun modello 3D nel progetto.'); return; }
+  const daMostrare = scegli || (modelli.some((m) => m.percorso === prima) ? prima : modelli[0].percorso);
+  scelta.value = daMostrare;
+  carica(daMostrare, true);
+}
+
+$('modello').addEventListener('change', (e) => carica(e.target.value, false));
+$('animazione').addEventListener('change', (e) => suona(e.target.value));
+$('ricarica').addEventListener('click', () => elenco());
+$('pausa').addEventListener('click', () => {
+  inPausa = !inPausa;
+  $('pausa').innerHTML = inPausa ? '&#9654;' : '&#10074;&#10074;';
+});
+
+// ---------------------------------------------------------------- Blender
+$('rendi').addEventListener('click', async () => {
+  if (!percorsoAttuale) return;
+  const tempo = azione && azione.getClip().duration ? (azione.time % azione.getClip().duration) / azione.getClip().duration : 0;
+  const box = $('rendering');
+  box.style.display = 'block';
+  $('rendering-titolo').textContent = 'Blender';
+  $('rendering-corpo').innerHTML = '<div class="attesa">Blender sta facendo l\'immagine da questo punto di vista...<br>' +
+    '(la prima volta puo\' volerci mezzo minuto)</div>';
+  $('rendi').disabled = true;
+  try {
+    const risposta = await fetch('/api/vista3d/rendi', {
+      method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        percorso: percorsoAttuale, fov: camera.fov,
+        camera: camera.position.toArray(), bersaglio: controlli.target.toArray(),
+        animazione: azione ? azione.getClip().name : null, tempo: tempo,
+        larghezza: 640, altezza: Math.round(640 / Math.max(0.3, camera.aspect))
+      })
+    });
+    const r = await risposta.json();
+    if (!r.ok) throw new Error(r.errore || 'Blender non ha fatto l\'immagine');
+    $('rendering-titolo').textContent = 'Blender (' + (r.motore || '').replace('BLENDER_', '').toLowerCase() + ', ' + r.secondi + ' s)';
+    $('rendering-corpo').innerHTML = '<img alt="rendering di Blender" src="' + r.url + '">';
+  } catch (errore) {
+    $('rendering-corpo').innerHTML = '<div class="attesa errore">' + errore.message + '</div>';
+  } finally {
+    $('rendi').disabled = false;
+  }
+});
+$('chiudi-rendering').addEventListener('click', () => { $('rendering').style.display = 'none'; });
+
+$('converti').addEventListener('click', async () => {
+  const fbx = $('fbx').value.trim().replace(/^"|"$/g, '');
+  if (!fbx) return;
+  $('converti').disabled = true;
+  $('esito-conversione').textContent = 'Blender sta convertendo il personaggio (qualche secondo)...';
+  try {
+    const r = await (await fetch('/api/vista3d/prepara', {
+      method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ fbx: fbx })
+    })).json();
+    if (!r.ok) throw new Error(r.errore || 'conversione non riuscita');
+    $('esito-conversione').textContent = 'Fatto: ' + r.triangoli + ' triangoli, movimenti: ' + (r.animazioni || []).join(', ') +
+      ', ' + r.sprite + ' immagini per il gioco.';
+    await elenco(r.glb.split('\\').join('/'));
+  } catch (errore) {
+    $('esito-conversione').innerHTML = '<span class="errore">' + errore.message + '</span>';
+  } finally {
+    $('converti').disabled = false;
+  }
+});
+
+// Lo Studio avvisa quando un modello cambia sul disco: si ricarica da solo, tenendo la vista.
+window.addEventListener('message', (e) => {
+  if (e.data && e.data.tipo === 'ricarica') elenco();
+});
+
+(function giro() {
+  requestAnimationFrame(giro);
+  const dt = orologio.getDelta();
+  if (miscelatore && !inPausa) miscelatore.update(dt);
+  controlli.update();
+  renderer.render(scena, camera);
+})();
+
+elenco();
+</script>
+</body>
+</html>

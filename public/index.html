@@ -1,0 +1,1741 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NotExist Intelligience Studio</title>
+  <link rel="stylesheet" href="/vendor/@xterm/xterm/css/xterm.css">
+  <link rel="stylesheet" href="style.css?v=4">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <!-- Schermata di avvio. Rimossa dal DOM appena finisce o al primo clic:
+       un video da 10 secondi non deve mai diventare un ostacolo. -->
+  <div class="boot-overlay" id="boot-overlay">
+    <video id="boot-video" muted playsinline autoplay preload="auto">
+      <source src="/media/bootapp.mp4?v=2" type="video/mp4">
+    </video>
+    <button class="boot-skip" id="boot-skip" type="button">Salta</button>
+  </div>
+
+  <div class="app-layout">
+    <!-- Top Navigation Bar -->
+    <header class="top-nav">
+      <div class="brand" title="NotExist Intelligience Studio &mdash; di 0Not_Exist0">
+        <div class="logo-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="4 17 10 11 4 5"></polyline>
+            <line x1="12" y1="19" x2="20" y2="19"></line>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <span class="brand-title">NotExist</span>
+          <span class="brand-subtitle">Intelligience Studio</span>
+        </div>
+      </div>
+
+      <!-- Current Workspace / Directory selector badge -->
+      <div class="workspace-pill" id="btn-open-dir-modal" title="Clicca per cambiare la cartella di lavoro di Adam">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+        </svg>
+        <span class="ws-label">Cartella:</span>
+        <span class="ws-path" id="current-dir-display">Caricamento...</span>
+        <button class="ws-change-btn" type="button">Cambia</button>
+      </div>
+
+      <!-- Status & Top Controls -->
+      <div class="top-actions">
+        <button class="btn btn-secondary btn-nav-highlight" id="btn-open-network" title="Accesso da altri dispositivi e Web">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="2" y1="12" x2="22" y2="12"></line>
+            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+          </svg>
+          <span>Web & Rete</span>
+        </button>
+
+        <button class="btn btn-secondary btn-nav-brain" id="btn-open-brain-view" title="Apri Mappa Neurale Interattiva dei Progetti e Memoria">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="18" cy="5" r="3"></circle>
+            <circle cx="6" cy="12" r="3"></circle>
+            <circle cx="18" cy="19" r="3"></circle>
+            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+          </svg>
+          <span>Mappa Neurale</span>
+          <span class="badge-neuron-count" id="header-neuron-count">0</span>
+        </button>
+
+        <div class="status-indicator" id="claude-status-badge">
+          <span class="status-dot online"></span>
+          <span class="status-text" id="status-label">Adam Attivo</span>
+        </div>
+
+        <button class="btn btn-secondary" id="btn-runtime" title="Apre le pagine in un browser vero: errori, elementi non cliccabili, screenshot">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="3"></circle>
+          </svg>
+          <span>Prova dal vivo</span>
+          <span class="diag-badge" id="runtime-badge" hidden></span>
+        </button>
+
+        <button class="btn btn-secondary" id="btn-code-map" title="Mappa variabili, funzioni e collegamenti fra i file">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect>
+            <path d="M6.5 10v4a2 2 0 0 0 2 2H14"></path>
+          </svg>
+          <span>Mappa codice</span>
+        </button>
+
+        <button class="btn btn-secondary" id="btn-scan" title="Analizza tutti i file del progetto e cerca bug">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <span>Analizza</span>
+          <span class="diag-badge" id="scan-badge" hidden></span>
+        </button>
+
+        <button class="btn btn-secondary" id="btn-diagnostics" title="Verifica perche' Adam non risponde">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+          </svg>
+          <span>Diagnostica</span>
+          <span class="diag-badge" id="diag-badge" hidden></span>
+        </button>
+
+        <button class="btn btn-secondary" id="btn-restart-claude" title="Riavvia la sessione Claude Code">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="23 4 23 10 17 10"></polyline>
+            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+          </svg>
+          <span>Riavvia</span>
+        </button>
+
+        <button class="btn btn-secondary" id="btn-clear-term" title="Pulisci schermata terminale">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="3 6 5 6 21 6"></polyline>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+          </svg>
+          <span>Pulisci</span>
+        </button>
+
+        <button class="btn btn-secondary" id="btn-toggle-sidebar" title="Espandi/Riduci pannello laterale">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+            <line x1="9" y1="3" x2="9" y2="21"></line>
+          </svg>
+          <span id="toggle-sidebar-text">Pannello</span>
+        </button>
+
+        <button class="btn btn-icon" id="btn-open-settings" title="Impostazioni">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2 2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Workspace Container -->
+    <main class="main-container">
+      <!-- Left Sidebar with Tabs -->
+      <aside class="sidebar" id="sidebar">
+        <div class="sidebar-tabs">
+          <button class="tab-btn active" data-tab="tab-projects" title="Gestione Progetti e Cartella di Lavoro">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+            </svg>
+            Progetti
+          </button>
+          <button class="tab-btn" data-tab="tab-memory" title="Memoria di Progetto & Globale con Grafo Neurale">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="18" cy="5" r="3"></circle>
+              <circle cx="6" cy="12" r="3"></circle>
+              <circle cx="18" cy="19" r="3"></circle>
+              <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+              <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+            </svg>
+            Memoria
+          </button>
+          <button class="tab-btn" data-tab="tab-commands" title="Comandi Rapidi Claude Code">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+            </svg>
+            Comandi
+          </button>
+          <button class="tab-btn" data-tab="tab-files" title="Esplora i file del progetto">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+            </svg>
+            File
+          </button>
+          <button class="tab-btn" data-tab="tab-web-search" title="Cerca sul Web con Search e Deep Search">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            Web
+          </button>
+          <button class="tab-btn" data-tab="tab-documentazione" title="Documentazione, PDF, Immagini e Fonti per Adam">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+              <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+            </svg>
+            Documenti
+            <span class="badge-tag" id="badge-doc-count" style="font-size: 10px; padding: 1px 5px; margin-left: 2px;">1</span>
+          </button>
+          <button class="tab-btn" data-tab="tab-mcp" title="Gestisci Server Model Context Protocol (MCP)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect>
+              <rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect>
+              <line x1="6" y1="6" x2="6.01" y2="6"></line>
+              <line x1="6" y1="18" x2="6.01" y2="18"></line>
+            </svg>
+            MCP
+          </button>
+        </div>
+
+        <!-- TAB 0: Progetti & Cartella di Lavoro -->
+        <div class="tab-content active" id="tab-projects">
+          <!-- Active Working Directory & Direct Input -->
+          <div class="section-card">
+            <div class="card-title">Cartella di Lavoro Attiva</div>
+            
+            <div class="current-project-box">
+              <div class="current-proj-header">
+                <span class="active-pulse-dot"></span>
+                <span class="active-proj-name" id="active-project-name">Cartella Corrente</span>
+              </div>
+              <div class="active-proj-path" id="active-project-path-display">Caricamento...</div>
+            </div>
+
+            <div class="project-input-section">
+              <label for="input-work-dir" class="field-label">Imposta Cartella di Lavoro:</label>
+              <div class="input-with-button">
+                <input 
+                  type="text" 
+                  id="input-work-dir" 
+                  class="project-path-input" 
+                  placeholder="C:\percorso\della\cartella..." 
+                  spellcheck="false" 
+                  autocomplete="off"
+                />
+                <button class="btn btn-secondary btn-browse" id="btn-browse-folder" type="button" title="Sfoglia cartelle sul computer">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                  </svg>
+                  <span>Sfoglia</span>
+                </button>
+              </div>
+
+              <div class="project-action-buttons">
+                <button class="btn btn-primary btn-block" id="btn-apply-work-dir" type="button">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                  <span>Imposta Cartella e Riavvia Adam</span>
+                </button>
+                <button class="btn btn-secondary btn-block" id="btn-save-current-as-project" type="button">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                    <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                    <polyline points="7 3 7 8 15 8"></polyline>
+                  </svg>
+                  <span>Salva nei Progetti</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Saved Projects List -->
+          <div class="section-card">
+            <div class="card-header-flex">
+              <div class="card-title" style="margin-bottom: 0;">I Miei Progetti</div>
+              <button class="btn-text-action" id="btn-toggle-new-project" type="button">+ Aggiungi Progetto</button>
+            </div>
+
+            <!-- Form to add new custom project -->
+            <div class="new-project-form hidden" id="new-project-form">
+              <div class="form-subgroup">
+                <label for="new-proj-name">Nome Progetto</label>
+                <input type="text" id="new-proj-name" placeholder="es. Mio Sito Web" />
+              </div>
+              <div class="form-subgroup">
+                <label for="new-proj-path">Percorso Cartella</label>
+                <div class="input-with-button">
+                  <input type="text" id="new-proj-path" placeholder="C:\..." />
+                  <button class="btn btn-secondary btn-sm" id="btn-browse-new-proj" type="button" title="Sfoglia">Sfoglia</button>
+                </div>
+              </div>
+              <div class="form-buttons-row">
+                <button class="btn btn-secondary btn-sm" id="btn-cancel-new-proj" type="button">Annulla</button>
+                <button class="btn btn-primary btn-sm" id="btn-confirm-add-proj" type="button">Salva Progetto</button>
+              </div>
+            </div>
+
+            <div class="projects-list-container" id="saved-projects-list">
+              <div class="loading-spinner">Caricamento progetti...</div>
+            </div>
+          </div>
+
+          <!-- Quick System Shortcuts -->
+          <div class="section-card">
+            <div class="card-title">Scorciatoie Rapide</div>
+            <div class="shortcut-chips-grid" id="quick-shortcuts-list">
+              <!-- Loaded via JS -->
+            </div>
+          </div>
+
+          <!-- Recent Directories -->
+          <div class="section-card" id="recent-dirs-card">
+            <div class="card-title">Cartelle Recenti</div>
+            <div class="recent-dirs-list" id="recent-dirs-list">
+              <!-- Loaded via JS -->
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB MEMORY: Cervello & Memoria Neurale -->
+        <div class="tab-content" id="tab-memory">
+          <!-- Summary Card & Open Visualizer -->
+          <div class="section-card">
+            <div class="card-title">Cervello & Rete Neurale</div>
+            <div class="memory-stats-grid">
+              <div class="mem-stat-box">
+                <span class="mem-stat-num" id="stat-total-neurons">0</span>
+                <span class="mem-stat-lbl">Neuroni Totali</span>
+              </div>
+              <div class="mem-stat-box">
+                <span class="mem-stat-num" id="stat-total-synapses">0</span>
+                <span class="mem-stat-lbl">Sinapsi Attive</span>
+              </div>
+              <div class="mem-stat-box">
+                <span class="mem-stat-num" id="stat-proj-neurons">0</span>
+                <span class="mem-stat-lbl">Progetto</span>
+              </div>
+              <div class="mem-stat-box">
+                <span class="mem-stat-num" id="stat-glob-neurons">0</span>
+                <span class="mem-stat-lbl">Globale</span>
+              </div>
+            </div>
+
+            <button class="btn btn-primary btn-block" id="btn-open-brain-full" type="button" style="margin-top: 10px;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="18" cy="5" r="3"></circle>
+                <circle cx="6" cy="12" r="3"></circle>
+                <circle cx="18" cy="19" r="3"></circle>
+                <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+              </svg>
+              <span>Visualizza Mappa Neurale Completa</span>
+            </button>
+          </div>
+
+          <!-- Quick Add Memory -->
+          <div class="section-card">
+            <div class="card-header-flex">
+              <div class="card-title" style="margin-bottom: 0;">+ Memorizza Elemento</div>
+              <button class="btn-text-action" id="btn-toggle-add-memory" type="button">Apri Form</button>
+            </div>
+
+            <div class="quick-memory-form hidden" id="quick-memory-form">
+              <div class="form-subgroup">
+                <label for="mem-input-scope">Ambito Memoria</label>
+                <select id="mem-input-scope">
+                  <option value="project" selected>Memoria di Progetto (.claude_memory.json)</option>
+                  <option value="global">Memoria Globale (Valida ovunque)</option>
+                </select>
+              </div>
+
+              <div class="form-subgroup">
+                <label for="mem-input-type">Tipo di Neurone</label>
+                <select id="mem-input-type">
+                  <option value="variable">Variabile (Config, Env, Porta, Endpoint)</option>
+                  <option value="step">Passaggio (Milestone, Task, Modifica)</option>
+                  <option value="data">Dato / Nota (Architettura, Stack, Schemi)</option>
+                  <option value="rule">Regola (Best-practice, Guida di stile)</option>
+                  <option value="goal">Obiettivo (Roadmap, Task da fare)</option>
+                </select>
+              </div>
+
+              <div class="form-subgroup">
+                <label for="mem-input-label">Titolo / Identificatore</label>
+                <input type="text" id="mem-input-label" placeholder="es. DB_URI o Passo 2: Auth setup" />
+              </div>
+
+              <div class="form-subgroup">
+                <label for="mem-input-value">Valore o Descrizione</label>
+                <textarea id="mem-input-value" rows="2" placeholder="Dati, istruzioni, valore della variabile o nota..."></textarea>
+              </div>
+
+              <div class="form-subgroup">
+                <label for="mem-input-tags">Tags (opzionali, separati da virgola)</label>
+                <input type="text" id="mem-input-tags" placeholder="es. database, auth, backend" />
+              </div>
+
+              <div class="form-buttons-row">
+                <button class="btn btn-secondary btn-sm" id="btn-cancel-memory-form" type="button">Annulla</button>
+                <button class="btn btn-primary btn-sm" id="btn-save-memory-item" type="button">Crea Neurone</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Project Neurons List -->
+          <div class="section-card">
+            <div class="card-title">Neuroni del Progetto Attivo</div>
+            <div class="neurons-sidebar-list" id="sidebar-project-neurons-list">
+              <div class="loading-spinner">Caricamento neuroni...</div>
+            </div>
+          </div>
+
+          <!-- Global Neurons List -->
+          <div class="section-card">
+            <div class="card-title">Neuroni Globali Condivisi</div>
+            <div class="neurons-sidebar-list" id="sidebar-global-neurons-list">
+              <div class="loading-spinner">Caricamento neuroni...</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 1: Commands & Action Deck -->
+        <div class="tab-content" id="tab-commands">
+          <!-- Fast Interactive Keys -->
+          <div class="section-card">
+            <div class="card-title">Tasti di Risposta Rapida</div>
+            <div class="button-grid-keys">
+              <button class="key-btn key-approve" id="key-yes" title="Invia 'y' e conferma">
+                <span class="key-tag">y</span>
+                <span>Approva</span>
+              </button>
+              <button class="key-btn key-reject" id="key-no" title="Invia 'n' e rifiuta">
+                <span class="key-tag">n</span>
+                <span>Rifiuta</span>
+              </button>
+              <button class="key-btn key-cancel" id="key-ctrl-c" title="Invia Ctrl+C per interrompere">
+                <span class="key-tag">^C</span>
+                <span>Interrompi</span>
+              </button>
+              <button class="key-btn key-neutral" id="key-esc" title="Invia tasto Escape">
+                <span class="key-tag">Esc</span>
+                <span>Annulla</span>
+              </button>
+              <button class="key-btn key-enter" id="key-enter" title="Invia Invio">
+                <span class="key-tag">↵</span>
+                <span>Invio</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Comandi slash di Claude Code -->
+          <div class="section-card">
+            <div class="card-title">Comandi Claude Code</div>
+            <div class="cmd-chips">
+              <button class="chip-btn" data-cmd="/cost" title="Visualizza i token e il costo stimato della sessione">
+                <code>/cost</code>
+                <span>Costi & Token</span>
+              </button>
+              <button class="chip-btn" data-cmd="/compact" title="Comprime il contesto della conversazione per risparmiare memoria">
+                <code>/compact</code>
+                <span>Comprimi</span>
+              </button>
+              <button class="chip-btn" data-cmd="/doctor" title="Esegue la diagnostica di Claude Code e degli strumenti">
+                <code>/doctor</code>
+                <span>Diagnostica</span>
+              </button>
+              <button class="chip-btn" data-cmd="/init" title="Inizializza una guida per il progetto (CLAUDE.md)">
+                <code>/init</code>
+                <span>Inizializza</span>
+              </button>
+              <button class="chip-btn" data-cmd="/clear" title="Pulisce la cronologia della conversazione">
+                <code>/clear</code>
+                <span>Nuova Chat</span>
+              </button>
+              <button class="chip-btn" data-cmd="/help" title="Mostra tutti i comandi disponibili">
+                <code>/help</code>
+                <span>Aiuto</span>
+              </button>
+              <button class="chip-btn" data-cmd="/review" title="Revisione delle modifiche correnti">
+                <code>/review</code>
+                <span>Review Diff</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Quick Prompt Templates -->
+          <div class="section-card">
+            <div class="card-title">Prompt Suggeriti</div>
+            <div class="prompt-list">
+              <div class="prompt-item" data-prompt="Analizza la struttura del progetto e spiegami l'architettura principale.">
+                <span class="prompt-icon">🔍</span>
+                <span class="prompt-text">Spiega l'architettura del progetto</span>
+              </div>
+              <div class="prompt-item" data-prompt="Cerca e correggi eventuali bug, problemi di sintassi o errori nel codice.">
+                <span class="prompt-icon">🐛</span>
+                <span class="prompt-text">Trova e correggi i bug</span>
+              </div>
+              <div class="prompt-item" data-prompt="Scrivi dei test unitari completi per i moduli principali del progetto.">
+                <span class="prompt-icon">🧪</span>
+                <span class="prompt-text">Genera test unitari</span>
+              </div>
+              <div class="prompt-item" data-prompt="Mostra le modifiche git non committate e crea un commit con un messaggio descrittivo.">
+                <span class="prompt-icon">📦</span>
+                <span class="prompt-text">Genera commit Git pulito</span>
+              </div>
+              <div class="prompt-item" data-prompt="Ottimizza le prestazioni e migliora la leggibilità del codice.">
+                <span class="prompt-icon">⚡</span>
+                <span class="prompt-text">Ottimizza prestazioni e codice</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 2: File Explorer -->
+        <div class="tab-content" id="tab-files">
+          <div class="explorer-header">
+            <span class="explorer-path" id="file-explorer-current">Caricamento...</span>
+            <div class="explorer-tools">
+              <button class="tool-btn" id="btn-file-parent" title="Vai alla cartella superiore">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="15 18 9 12 15 6"></polyline>
+                </svg>
+              </button>
+              <button class="tool-btn" id="btn-file-refresh" title="Ricarica elenco file">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="23 4 23 10 17 10"></polyline>
+                  <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+          <div class="file-tree-container" id="file-tree-container">
+            <!-- Files loaded via JS -->
+            <div class="loading-spinner">Caricamento file...</div>
+          </div>
+        </div>
+
+        <!-- TAB 3: Web Search & Siti Consigliati -->
+        <div class="tab-content" id="tab-web-search">
+          <div class="web-subtabs">
+            <button class="web-subtab-btn active" id="btn-subtab-search" type="button">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+              <span>Ricerca Web</span>
+            </button>
+            <button class="web-subtab-btn" id="btn-subtab-siti" type="button">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+              </svg>
+              <span>Siti Consigliati</span>
+              <span class="badge-siti-count" id="badge-siti-count">0</span>
+            </button>
+          </div>
+
+          <!-- SUB-VIEW 1: Ricerca Web -->
+          <div class="web-subview active" id="view-web-search">
+            <div class="section-card">
+              <div class="card-title">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: -2px; margin-right: 4px;">
+                  <circle cx="11" cy="11" r="8"></circle>
+                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+                Ricerca Web
+              </div>
+              <div class="web-search-input-area">
+                <input type="text" id="web-search-input" placeholder="Cerca qualcosa sul web..." autocomplete="off" spellcheck="false" />
+                <div class="web-search-buttons">
+                  <button class="btn btn-primary btn-sm" id="btn-web-search" type="button" title="Ricerca veloce: restituisce titoli, snippet e link">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <circle cx="11" cy="11" r="8"></circle>
+                      <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                    <span>Cerca</span>
+                  </button>
+                  <button class="btn btn-secondary btn-sm btn-deep-search-action" id="btn-deep-search" type="button" title="Ricerca profonda: cerca + scarica e analizza il contenuto delle pagine trovate">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <line x1="2" y1="12" x2="22" y2="12"></line>
+                      <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                    </svg>
+                    <span>Deep Search</span>
+                  </button>
+                </div>
+              </div>
+              <div class="web-search-hint">
+                <strong>Cerca</strong> = risultati rapidi &nbsp;|&nbsp; <strong>Deep Search</strong> = scarica anche il contenuto delle pagine. <em>Shift+Invio</em> per Deep.
+              </div>
+            </div>
+
+            <!-- Search Status -->
+            <div class="section-card web-search-status-card" id="web-search-status-card" style="display: none;">
+              <div id="web-search-status" class="web-search-status"></div>
+            </div>
+
+            <!-- Results Container -->
+            <div class="web-search-results-container" id="web-search-results">
+              <div class="web-search-empty-state">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" style="opacity: 0.3;">
+                  <circle cx="11" cy="11" r="8"></circle>
+                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+                <p>Digita una query e premi <strong>Cerca</strong> o <strong>Deep Search</strong></p>
+                <p class="hint-small">I risultati appariranno qui. Puoi inviarli direttamente ad Adam.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- SUB-VIEW 2: Siti Consigliati per Adam -->
+          <div class="web-subview" id="view-web-siti" style="display: none;">
+            <div class="section-card">
+              <div class="card-title">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: -2px; margin-right: 4px;">
+                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                </svg>
+                Aggiungi Sito Consigliato per Adam
+              </div>
+              <p class="hint-small" style="margin-bottom: 10px;">
+                Inserisci i siti o la documentazione che raccomandi ad Adam. Quando Adam non sa creare un pezzo o non ha addestramento, visiterà questi siti o ti farà domande.
+              </p>
+              <div class="form-subgroup">
+                <label for="input-sito-url">URL del Sito o Documentazione</label>
+                <input type="url" id="input-sito-url" placeholder="es. https://developer.mozilla.org o https://github.com/..." autocomplete="off" />
+              </div>
+              <div class="form-subgroup">
+                <label for="input-sito-desc">Descrizione / Cosa cercare qui (opzionale)</label>
+                <input type="text" id="input-sito-desc" placeholder="es. Documentazione API, esempi di codice, librerie..." autocomplete="off" />
+              </div>
+              <div class="form-buttons-row">
+                <button class="btn btn-primary btn-sm btn-block" id="btn-aggiungi-sito" type="button">
+                  + Aggiungi ai Siti Consigliati
+                </button>
+              </div>
+            </div>
+
+            <div class="section-card">
+              <div class="card-title-flex">
+                <span>Fonti Configurate per Adam</span>
+                <span class="badge-tag" id="label-totale-siti">0 siti</span>
+              </div>
+              <div class="siti-consigliati-list" id="siti-consigliati-list">
+                <div class="search-empty">Caricamento siti consigliati...</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB DOCUMENTAZIONE: Fonti, Unity Learn, PDF, Immagini e File per Adam -->
+        <div class="tab-content" id="tab-documentazione">
+          <!-- Card Fonte Primaria Unity -->
+          <div class="section-card doc-unity-card" style="border-left: 3px solid #00bc7e;">
+            <div class="card-title-flex">
+              <div class="card-title" style="margin-bottom:0;">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: -2px; margin-right: 5px; color: #00bc7e;">
+                  <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                  <polyline points="2 17 12 22 22 17"></polyline>
+                  <polyline points="2 12 12 17 22 12"></polyline>
+                </svg>
+                Fonte Primaria Unity
+              </div>
+              <span class="badge-tag" style="background: rgba(0, 188, 126, 0.15); color: #00bc7e; font-weight:600;">Obbligatoria per Unity</span>
+            </div>
+            <p class="hint-small" style="margin-top: 6px; margin-bottom: 10px;">
+              Per lo sviluppo su Unity, Adam consulta prioritariamente <a href="https://learn.unity.com/" target="_blank" style="color:#00bc7e; font-weight:600; text-decoration:underline;">https://learn.unity.com/</a> e verifica che le API usate siano aggiornate a <strong>Unity 6</strong>. Se le informazioni non bastano, Adam ti avviserà apertamente prima di fare una ricerca autonoma.
+            </p>
+            <div style="display:flex; gap:8px; align-items:center;">
+              <input type="text" class="input-readonly" value="https://learn.unity.com/" readonly style="flex:1; font-size:12px; background:rgba(0,0,0,0.25); border:1px solid rgba(255,255,255,0.1); border-radius:4px; padding:6px 10px; color:#eee;" />
+              <a href="https://learn.unity.com/" target="_blank" class="btn btn-secondary btn-sm" style="text-decoration:none; white-space:nowrap; padding:6px 12px;">Apri Sito</a>
+            </div>
+          </div>
+
+          <!-- Aggiungi Documento o Riferimento -->
+          <div class="section-card">
+            <div class="card-title">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: -2px; margin-right: 4px;">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+              Aggiungi Documentazione per Adam
+            </div>
+            
+            <div class="web-subtabs" style="margin-bottom: 12px;">
+              <button class="web-subtab-btn active" id="btn-subtab-doc-link" type="button">Sito Web / Link</button>
+              <button class="web-subtab-btn" id="btn-subtab-doc-file" type="button">Carica File (PDF / Immagine / Testo)</button>
+            </div>
+
+            <!-- Form 1: Link Web -->
+            <div id="form-doc-link">
+              <div class="form-subgroup">
+                <label for="input-doc-url">URL Documentazione o Sito</label>
+                <input type="url" id="input-doc-url" placeholder="es. https://learn.unity.com/tutorial/... o https://docs.unity.com/..." autocomplete="off" />
+              </div>
+              <div class="form-subgroup">
+                <label for="input-doc-url-name">Nome / Titolo</label>
+                <input type="text" id="input-doc-url-name" placeholder="es. Tutorial Movimento & Physics Unity 6" autocomplete="off" />
+              </div>
+              <div class="form-subgroup">
+                <label for="input-doc-url-desc">Note per Adam (cosa imparare o verificare qui)</label>
+                <input type="text" id="input-doc-url-desc" placeholder="es. Segui questo schema per i comandi di sparo..." autocomplete="off" />
+              </div>
+              <div class="form-buttons-row">
+                <button class="btn btn-primary btn-sm btn-block" id="btn-aggiungi-doc-url" type="button">
+                  + Aggiungi Link alla Documentazione
+                </button>
+              </div>
+            </div>
+
+            <!-- Form 2: File Locale (PDF, Immagini, Testo) -->
+            <div id="form-doc-file" style="display: none;">
+              <div class="form-subgroup">
+                <label for="input-doc-file-upload">Seleziona File (PDF, PNG, JPG, Diagrammi, Codice, TXT)</label>
+                <input type="file" id="input-doc-file-upload" accept=".pdf,.png,.jpg,.jpeg,.webp,.svg,.txt,.md,.cs,.json" />
+              </div>
+              <div class="form-subgroup">
+                <label for="input-doc-file-desc">Note per Adam (cosa c'è in questo documento)</label>
+                <input type="text" id="input-doc-file-desc" placeholder="es. Schema delle classi, specifiche armi, diagramma delle scene..." autocomplete="off" />
+              </div>
+              <div class="form-buttons-row">
+                <button class="btn btn-primary btn-sm btn-block" id="btn-aggiungi-doc-file" type="button">
+                  + Salva File nella Documentazione
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Lista Documenti Configurate -->
+          <div class="section-card">
+            <div class="card-title-flex">
+              <span>Documenti e Fonti Configurate per Adam</span>
+              <span class="badge-tag" id="label-totale-documenti">0 documenti</span>
+            </div>
+            <div class="documentazione-list" id="documentazione-list">
+              <div class="search-empty">Caricamento documentazione...</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB MCP: Gestione Server -->
+        <div class="tab-content" id="tab-mcp">
+          <div class="section-card" id="unity-mcp-setup" hidden>
+            <div class="card-title">Collegamento a Unity</div>
+            <div class="search-empty" id="unity-mcp-status" style="margin:8px 0 12px; text-align:left;">
+              Controllo il progetto Unity...
+            </div>
+            <div class="form-buttons-row">
+              <button class="btn btn-primary btn-sm btn-block" id="btn-unity-mcp-setup" type="button">Connetti Unity Editor</button>
+              <button class="btn btn-sm" id="btn-unity-mcp-check" type="button">Verifica collegamento</button>
+            </div>
+          </div>
+
+          <div class="section-card">
+            <div class="card-title">Server MCP della chat Adam</div>
+            <div class="mcp-servers-list" id="mcp-servers-list">
+              <!-- Rendered via JS -->
+              <div class="search-empty" style="text-align:center; padding:20px 0;">Nessun server MCP configurato per questo progetto.</div>
+            </div>
+          </div>
+
+          <div class="section-card">
+            <div class="card-title">Aggiungi Server MCP</div>
+            <div class="form-subgroup">
+              <label for="mcp-input-name">Nome Server</label>
+              <input type="text" id="mcp-input-name" placeholder="es. postgres, github..." />
+            </div>
+            <div class="form-subgroup">
+              <label for="mcp-input-command">Comando / Eseguibile</label>
+              <input type="text" id="mcp-input-command" placeholder="es. npx, node, docker..." />
+            </div>
+            <div class="form-subgroup">
+              <label for="mcp-input-args">Argomenti (separati da spazio)</label>
+              <textarea id="mcp-input-args" rows="2" placeholder="es. -y @modelcontextprotocol/server-postgres postgresql://localhost/mydb"></textarea>
+            </div>
+            <div class="form-buttons-row">
+              <button class="btn btn-primary btn-sm btn-block" id="btn-add-mcp" type="button">Aggiungi Server & Riavvia</button>
+            </div>
+          </div>
+        </div>
+      </aside>
+      <div class="sidebar-resizer" id="sidebar-resizer" title="Trascina per ridimensionare il pannello laterale"></div>
+
+      <!-- Center / Right: Terminal Window -->
+      <section class="workspace">
+        <div class="workspace-viste">
+        <!-- Selettore vista: Chat (vera UI) oppure Terminale (CLI grezza) -->
+        <div class="view-switch">
+          <div class="view-tabs">
+            <button class="view-tab active" id="btn-view-chat" type="button">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+              </svg>
+              <span>Chat</span>
+            </button>
+            <button class="view-tab" id="btn-view-preview" type="button">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="2" y="3" width="20" height="14" rx="2"></rect>
+                <line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line>
+              </svg>
+              <span>Anteprima</span>
+            </button>
+            <button class="view-tab" id="btn-view-file" type="button" title="Guarda i file mentre Adam li scrive e li modifica">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+                <line x1="8" y1="13" x2="14" y2="13"></line><line x1="8" y1="17" x2="12" y2="17"></line>
+              </svg>
+              <span>File dal vivo</span>
+              <span class="file-live-pallino" id="file-live-pallino"></span>
+            </button>
+            <button class="view-tab" id="btn-view-3d" type="button" title="Il personaggio in 3D, con il rendering di Blender">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 2l9 5v10l-9 5-9-5V7z"></path><path d="M12 22V12"></path><path d="M21 7l-9 5-9-5"></path>
+              </svg>
+              <span>3D</span>
+            </button>
+            <button class="view-tab" id="btn-view-terminal" type="button">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="4 17 10 11 4 5"></polyline><line x1="12" y1="19" x2="20" y2="19"></line>
+              </svg>
+              <span>Terminale</span>
+            </button>
+            <a href="/whatsapp" target="_blank" class="view-tab view-tab-link" id="btn-open-whatsapp" title="Apri WhatsApp Protettore in una pagina separata">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+              </svg>
+              <span>WhatsApp 🛡️</span>
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="opacity:0.6; margin-left:2px">
+                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                <polyline points="15 3 21 3 21 9"></polyline>
+                <line x1="10" y1="14" x2="21" y2="3"></line>
+              </svg>
+              <span class="whatsapp-alert-pill" id="wa-badge-alert" style="display:none">0</span>
+            </a>
+          </div>
+          <div class="view-meta">
+            <div class="model-control-zone" id="model-picker-root">
+              <div class="model-role-actions" aria-label="Modelli attivi">
+                <button class="model-role-trigger is-director" id="director-model-trigger" type="button"
+                  aria-haspopup="dialog" aria-expanded="false" aria-controls="model-picker-panel" data-model-role="director">
+                  <span class="model-role-indicator" aria-hidden="true"></span>
+                  <span class="model-role-copy">
+                    <span class="model-role-name">Direttore</span>
+                    <span class="model-role-model" id="director-model-label">Caricamento modelli…</span>
+                  </span>
+                  <span class="model-role-provider" id="director-provider-label">—</span>
+                  <span class="model-role-chevron" aria-hidden="true">⌄</span>
+                </button>
+                <button class="model-role-trigger is-coder" id="coder-model-trigger" type="button"
+                  aria-haspopup="dialog" aria-expanded="false" aria-controls="model-picker-panel" data-model-role="coder">
+                  <span class="model-role-indicator" aria-hidden="true"></span>
+                  <span class="model-role-copy">
+                    <span class="model-role-name">Coder</span>
+                    <span class="model-role-model" id="coder-model-label">Disattivato</span>
+                  </span>
+                  <span class="model-role-provider" id="coder-provider-label">—</span>
+                  <span class="model-role-chevron" aria-hidden="true">⌄</span>
+                </button>
+                <button type="button" class="btn-refresh-models" id="btn-refresh-models"
+                  title="Aggiorna i modelli da tutti i provider" aria-label="Aggiorna i modelli da tutti i provider">
+                  <span class="refresh-models-icon" aria-hidden="true">↻</span>
+                  <span class="refresh-models-label">Aggiorna modelli</span>
+                </button>
+              </div>
+
+              <select id="chat-model-select" class="model-native-select" tabindex="-1" aria-hidden="true">
+                <option value="ollama::qwen3.5-studio:9b">Direttore: qwen3.5-studio:9b</option>
+              </select>
+              <select id="chat-coder-select" class="model-native-select" tabindex="-1" aria-hidden="true">
+                <option value="">Coder: Disattivato</option>
+              </select>
+
+              <div class="model-picker-panel" id="model-picker-panel" role="dialog" aria-modal="false"
+                aria-labelledby="model-picker-title" hidden>
+                <header class="model-picker-header">
+                  <div>
+                    <p class="model-picker-eyebrow" id="model-picker-eyebrow">Modello attivo</p>
+                    <h3 id="model-picker-title">Scegli il Direttore</h3>
+                  </div>
+                  <button class="model-picker-close" id="model-picker-close" type="button" aria-label="Chiudi selettore modelli">×</button>
+                </header>
+                <label class="model-picker-search-wrap" for="model-filter-input">
+                  <span aria-hidden="true">⌕</span>
+                  <input type="search" class="model-filter-input" id="model-filter-input"
+                    placeholder="Cerca per nome o ID modello…" autocomplete="off">
+                </label>
+                <div class="model-provider-dock" id="model-provider-dock" role="tablist" aria-label="Provider disponibili"></div>
+                <div class="model-provider-summary" id="model-provider-summary" aria-live="polite"></div>
+                <div class="model-picker-list" id="model-picker-list" role="listbox" aria-label="Modelli disponibili"></div>
+                <p class="model-picker-feedback" id="model-picker-feedback" role="status" aria-live="polite"></p>
+              </div>
+            </div>
+            <select class="meta-pill select-pill" id="chat-vision-select" title="Modello Vision per analizzare le immagini (seleziona per cambiare)">
+              <option value="">Vision: Automatico</option>
+            </select>
+            <span class="meta-pill" id="chat-model-pill" style="display:none">--</span>
+            <span class="meta-pill" id="chat-provider-pill" title="Provider attivo">--</span>
+            <select class="meta-pill select-pill" id="chat-effort-select" title="Livello di ragionamento / intelligenza (seleziona per cambiare)">
+              <option value="low">Effort: Basso</option>
+              <option value="medium">Effort: Medio</option>
+              <option value="high" selected>Effort: Alto</option>
+              <option value="xhigh">Effort: Molto Alto</option>
+              <option value="max">Effort: Massimo</option>
+            </select>
+            <select class="meta-pill select-pill" id="chat-permission-select" title="Modalità autorizzazioni del modello — cambia il livello di controllo su file e comandi">
+              <option value="default">🔒 Autorizzazioni: Chiedi sempre</option>
+              <option value="acceptEdits" selected>✏️ Autorizzazioni: Accetta modifiche</option>
+              <option value="bypassPermissions">⚡ Autorizzazioni: Bypass (pericoloso)</option>
+            </select>
+            <span class="meta-pill" id="chat-effort-pill" style="display:none">--</span>
+            <span class="meta-pill ctx-pill" id="chat-context-pill" title="Quanta memoria di lavoro del modello occupa la conversazione" hidden>contesto --</span>
+            <button class="btn-term-tool" id="btn-chat-archivio" type="button" title="Chat salvate: scegli quali Adam può esplorare come memoria">Chat salvate</button>
+            <button class="btn-term-tool" id="btn-chat-new" type="button" title="Azzera la conversazione e riavvia la sessione">Nuova chat</button>
+          </div>
+        </div>
+
+        <!-- ===================== VISTA CHAT ===================== -->
+        <div class="view-panel" id="view-chat">
+          <div class="chat-banner" id="chat-banner" hidden>
+            <div class="banner-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                <line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line>
+              </svg>
+            </div>
+            <div class="banner-text" id="chat-banner-text"></div>
+            <button class="btn btn-secondary btn-sm" id="btn-banner-details" type="button">Dettagli</button>
+          </div>
+
+          <div class="chat-scroll" id="chat-scroll">
+            <div class="chat-empty" id="chat-empty">
+              <div class="chat-empty-icon">
+                <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                </svg>
+              </div>
+              <h2>Chiedi qualcosa ad Adam</h2>
+              <p>Le risposte, il ragionamento e gli strumenti usati appaiono qui come messaggi, non come output di terminale.</p>
+              <div class="chat-suggestions">
+                <button class="suggestion" type="button" data-prompt="Elenca i file di questa cartella e spiegami com'e' organizzato il progetto.">Analizza il progetto</button>
+                <button class="suggestion" type="button" data-prompt="Crea un file README.md che descriva questo progetto.">Crea un README</button>
+                <button class="suggestion" type="button" data-prompt="Cerca eventuali bug o problemi nel codice di questa cartella e spiegameli.">Cerca bug</button>
+              </div>
+            </div>
+            <div class="chat-messages" id="chat-messages"></div>
+          </div>
+
+          <div id="chat-network-alert" class="chat-network-alert" style="display:none;" role="alert"></div>
+
+          <div class="chat-activity" id="chat-activity" hidden>
+            <img class="thinking-gif" src="/media/thinking.gif?v=2" alt="" aria-hidden="true">
+            <div class="chat-activity-content">
+              <div class="chat-activity-header">
+                <span id="chat-activity-text">Adam sta pensando...</span>
+                <span id="chat-activity-timer" class="chat-activity-timer" hidden
+                  title="Tempo trascorso e token generati da Adam in questo turno (stimati mentre arrivano, poi esatti)">0s</span>
+              </div>
+              <div id="chat-activity-stream" class="chat-activity-stream" hidden></div>
+            </div>
+          </div>
+
+          <div class="chat-allegati" id="chat-allegati" hidden></div>
+
+          <!-- Barra dei tasti rapidi / prossimi passi ottimizzati per il flusso di lavoro -->
+          <div id="chat-prompt-actions-bar" class="chat-prompt-actions-bar" hidden>
+            <div class="chat-prompt-actions-header">
+              <span class="chat-prompt-actions-title">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                  <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                </svg>
+                <span>Prossimi passi suggeriti</span>
+              </span>
+              <button class="chat-prompt-actions-close" id="btn-close-prompt-actions" type="button" title="Nascondi suggerimenti" aria-label="Chiudi suggerimenti">&times;</button>
+            </div>
+            <div id="chat-prompt-actions-list" class="chat-prompt-actions-list"></div>
+          </div>
+
+          <div class="chat-composer">
+            <button class="btn btn-secondary btn-allega" id="btn-chat-allega" type="button" aria-label="Allega immagini, PDF o file di testo e codice"
+              title="Allega immagini, PDF fino a 4 MiB, file di testo o codice. Puoi anche incollarli (Ctrl+V) o trascinarli qui.">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path>
+              </svg>
+            </button>
+            <input type="file" id="chat-file" accept="image/png,image/jpeg,image/webp,image/gif,application/pdf,.pdf,.txt,.md,.json,.jsonc,.csv,.tsv,.xml,.yaml,.yml,.html,.css,.js,.mjs,.cjs,.ts,.tsx,.jsx,.py,.cs,.java,.c,.h,.cpp,.hpp,.go,.rs,.php,.rb,.sh,.ps1,.sql,.toml,.ini,.cfg,.log" multiple hidden>
+            <button class="btn btn-secondary btn-allega" id="btn-chat-regole" type="button" aria-label="Regole di Adam"
+              title="Regole di Adam: regole che segue sempre, adottate solo se l'esame dimostra che non peggiorano matematica, codice e strumenti">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><polyline points="9 12 11 14 15 10"></polyline>
+              </svg>
+            </button>
+            <button class="btn btn-secondary btn-allega" id="btn-chat-editor" type="button" aria-label="Editor visivo della pagina"
+              title="Editor visivo: apre la pagina nell'Anteprima per spostare pulsanti e cambiare colori e sfondo a vista">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <circle cx="13.5" cy="6.5" r="1"></circle><circle cx="17.5" cy="10.5" r="1"></circle>
+                <circle cx="8.5" cy="7.5" r="1"></circle><circle cx="6.5" cy="12.5" r="1"></circle>
+                <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.93 0 1.65-.75 1.65-1.69 0-.44-.18-.83-.44-1.12-.29-.29-.44-.65-.44-1.12a1.64 1.64 0 0 1 1.67-1.67h2c3.05 0 5.55-2.5 5.55-5.55C21.97 6.01 17.46 2 12 2z"></path>
+              </svg>
+            </button>
+            <button class="btn btn-secondary btn-allega" id="btn-chat-siti" type="button" aria-label="Siti consigliati per Adam"
+              title="Siti consigliati per Adam: inserisci i siti che Adam deve consultare quando non sa come creare un pezzo">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+              </svg>
+            </button>
+            <textarea id="chat-input" rows="1" placeholder="Scrivi un messaggio per Adam...  (Invio per inviare, Maiusc+Invio a capo; incolla o trascina immagini, PDF e file di testo)"></textarea>
+            <div class="composer-actions">
+              <button class="btn btn-secondary btn-sm" id="btn-chat-stop" type="button" hidden>Interrompi</button>
+              <button class="btn btn-primary" id="btn-chat-send" type="button">
+                <span>Invia</span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="22" y1="2" x2="11" y2="13"></line>
+                  <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ===================== VISTA ANTEPRIMA ===================== -->
+        <div class="view-panel hidden" id="view-preview">
+          <div class="preview-bar">
+            <select id="preview-page" title="Pagina da mostrare"></select>
+            <button class="btn-term-tool" id="btn-preview-reload" title="Ricarica">Ricarica</button>
+            <div class="preview-sizes">
+              <button class="btn-term-tool preview-size active" data-w="0" data-h="0">Adatta</button>
+              <button class="btn-term-tool preview-size" data-w="1280" data-h="800">1280</button>
+              <button class="btn-term-tool preview-size" data-w="800" data-h="600">800</button>
+              <button class="btn-term-tool preview-size" data-w="420" data-h="780">Telefono</button>
+            </div>
+            <span class="preview-url" id="preview-url"></span>
+            <button class="btn-term-tool" id="btn-preview-esplora" title="Sonda dei flussi: prova la pagina in modo sistematico (Invio, pulsanti, voci, caselle), la confronta con ciò che promette la descrizione e trasforma i difetti confermati in collaudi">Esplora</button>
+            <button class="btn-term-tool" id="btn-preview-editor" title="Modifica la pagina a vista: colori, sfondo, dimensioni e posizione degli elementi">Editor visivo</button>
+            <button class="btn-term-tool" id="btn-preview-check" title="Controlla questa pagina in un browser e mostra cosa vede Adam">Cosa vede Adam</button>
+            <button class="btn-term-tool" id="btn-preview-console" title="Mostra o nascondi la console">Console <span id="preview-console-count">0</span></button>
+          </div>
+
+          <div class="preview-stage" id="preview-stage">
+            <iframe id="preview-frame" title="Anteprima della pagina"></iframe>
+            <div class="preview-empty" id="preview-empty">
+              <p>Nessuna pagina HTML nella cartella di lavoro.</p>
+              <p class="hint-small">Chiedi ad Adam di crearne una: comparira&#768; qui.</p>
+            </div>
+          </div>
+
+          <div class="preview-check hidden" id="preview-check">
+            <div class="preview-check-head">
+              <span id="preview-check-titolo">Cosa vede Adam</span>
+              <button class="btn-term-tool" id="btn-preview-check-close">Chiudi</button>
+            </div>
+            <div class="preview-check-body" id="preview-check-body"></div>
+          </div>
+
+          <div class="preview-console hidden" id="preview-console">
+            <div class="preview-console-head">
+              <span>Console della pagina</span>
+              <button class="btn-term-tool" id="btn-preview-console-clear">Pulisci</button>
+            </div>
+            <div class="preview-console-body" id="preview-console-body"></div>
+          </div>
+        </div>
+
+        <!-- ===================== VISTA TERMINALE ===================== -->
+        <div class="view-panel hidden" id="view-terminal">
+          <div class="terminal-bar">
+            <div class="term-title">
+              <span class="term-dot"></span>
+              <span>Terminale Interattivo Claude Code</span>
+              <span class="term-badge">ConPTY 24-bit Color</span>
+            </div>
+            <div class="term-tools">
+              <button class="btn-term-tool" id="btn-font-decrease" title="Riduci font">A-</button>
+              <button class="btn-term-tool" id="btn-font-increase" title="Aumenta font">A+</button>
+              <button class="btn-term-tool" id="btn-copy-term" title="Copia testo selezionato">Copia</button>
+              <button class="btn-term-tool" id="btn-fullscreen-term" title="Schermo intero">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="terminal-viewport" id="terminal-container"></div>
+
+          <div class="bottom-input-bar">
+            <div class="input-history-container" id="input-history-container" style="display: none;"></div>
+            <div class="input-container">
+              <input type="text" id="quick-input" placeholder="Comando per il terminale (es: /cost, /help) e premi Invio" autocomplete="off" />
+              <button class="btn btn-primary" id="btn-send-input">
+                <span>Invia</span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="22" y1="2" x2="11" y2="13"></line>
+                  <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+        </div>
+        <!-- ============ PANNELLO FILE DAL VIVO (colonna di destra) ============
+             Richiesta dell'utente: vedere il file mentre Adam lo scrive, ACCANTO alla chat e non
+             al posto di questa. Il testo arriva dallo streaming, prima ancora che il file esista
+             su disco; a salvataggio avvenuto si rilegge dal disco e le righe nuove restano verdi. -->
+        <div class="pannello-file chiuso" id="view-file">
+          <div class="pannello-file-maniglia" id="file-live-maniglia" title="Trascina per allargare o stringere"></div>
+          <div class="pannello-file-dentro">
+            <!-- Due schede: il file che Adam scrive, e il personaggio in 3D (Blender). -->
+            <div class="pannello-schede">
+              <button class="pannello-scheda attiva" type="button" id="scheda-btn-file" data-scheda="file">File dal vivo</button>
+              <button class="pannello-scheda" type="button" id="scheda-btn-3d" data-scheda="3d">3D</button>
+              <button class="btn-term-tool" id="btn-file-live-chiudi" title="Chiudi il pannello">X</button>
+            </div>
+            <div class="pannello-scheda-corpo" id="scheda-file">
+            <div class="file-live-barra">
+              <span class="file-live-stato" id="file-live-stato">In attesa: qui vedrai i file mentre Adam li scrive.</span>
+              <span class="file-live-nome" id="file-live-nome"></span>
+              <span class="file-live-misure" id="file-live-misure"></span>
+              <label class="file-live-segui" title="Porta qui il file appena Adam comincia a scriverlo">
+                <input type="checkbox" id="file-live-segui" checked>
+                <span>segui</span>
+              </label>
+            </div>
+            <div class="file-live-codice" id="file-live-codice">
+              <div class="file-live-vuoto">
+                <p>Qui compare il file che Adam sta scrivendo, riga per riga, mentre lo scrive.</p>
+                <p class="hint-small">Quando ha finito, il file viene riletto dal disco e le righe nuove restano colorate.</p>
+              </div>
+            </div>
+            </div>
+            <!-- Il visore si carica solo la prima volta che si apre la scheda: three.js pesa. -->
+            <div class="pannello-scheda-corpo nascosta" id="scheda-3d">
+              <iframe id="vista3d-frame" title="Il personaggio in 3D" data-src="/vista-3d.html"></iframe>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Modal: Settings -->
+    <div class="modal-backdrop" id="modal-settings">
+      <div class="modal-card">
+        <div class="modal-header">
+          <div class="modal-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="3"></circle>
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+            </svg>
+            Impostazioni NotExist Intelligience Studio
+          </div>
+          <button class="modal-close" id="btn-close-settings">&times;</button>
+        </div>
+        <div class="modal-body">
+
+          <div class="form-group form-check">
+            <input type="checkbox" id="check-dangerously-skip-permissions" disabled />
+            <label for="check-dangerously-skip-permissions">
+              <strong>Permessi di sicurezza sempre attivi</strong>
+              <div class="hint">Il bypass totale è stato rimosso: Adam può lavorare in autonomia, ma resta confinato al progetto e ai controlli dello Studio.</div>
+            </label>
+          </div>
+
+          <div class="form-group form-check">
+            <input type="checkbox" id="check-auto-accept-folder" />
+            <label for="check-auto-accept-folder">
+              <strong>Accettazione Automatica Cartella Lavoro</strong>
+              <div class="hint">Invia automaticamente il tasto "Invio" al terminale quando Claude Code chiede di approvare la cartella ("Proceed with...").</div>
+            </label>
+          </div>
+
+          <div class="form-group form-check">
+            <input type="checkbox" id="check-auto-verify" />
+            <label for="check-auto-verify">
+              <strong>Verifica automatica di quello che Adam scrive</strong>
+              <div class="hint">Dopo ogni turno controlla la sintassi dei file appena creati o modificati (Python, JavaScript, JSON). Se trova errori li rimanda ad Adam con il messaggio esatto e gli chiede di correggerli, fino a 3 volte. Non esegue il codice del progetto.</div>
+            </label>
+          </div>
+
+          <div class="form-group">
+            <label for="input-test-command">Comando di test del progetto (facoltativo)</label>
+            <input type="text" id="input-test-command" placeholder="es. npm test" />
+            <small class="form-hint">Se lo compili, viene eseguito dopo ogni turno e i suoi errori vengono passati ad Adam. Lascialo vuoto per limitarsi al controllo di sintassi: <strong>questo comando esegue davvero il codice del progetto</strong>.</small>
+          </div>
+
+          <div class="form-group form-check">
+            <input type="checkbox" id="check-auto-continue" />
+            <label for="check-auto-continue">
+              <strong>Ripresa automatica delle risposte incomplete</strong>
+              <div class="hint">Se una risposta si interrompe a meta&#768; (tetto di token, blocco di codice lasciato aperto, errore), lo Studio chiede da solo ad Adam di continuare, fino a 8 volte. Utile con i modelli locali, che si fermano spesso prima di finire.</div>
+            </label>
+          </div>
+
+          <div class="form-group form-check">
+            <input type="checkbox" id="check-flat-ui-mode" />
+            <label for="check-flat-ui-mode">
+              <strong>Modalità Chat Pura (Testo Lineare)</strong>
+              <div class="hint">Disattiva l'interfaccia interattiva di Claude Code e stampa il testo come una normale chat. Risolve il problema del testo "vuoto" in mezzo allo schermo. (--ax-screen-reader)</div>
+            </label>
+          </div>
+
+          <div class="form-group">
+            <label for="input-model">Modello LLM</label>
+            <input type="text" id="input-model" list="model-list" placeholder="es. qwen3.5-studio:9b oppure claude-sonnet-5" />
+            <datalist id="model-list">
+              <!-- I modelli locali vengono aggiunti da app.js leggendo Ollama -->
+              <option value="claude-opus-5"></option>
+              <option value="claude-sonnet-5"></option>
+              <option value="claude-haiku-4-5-20251001"></option>
+            </datalist>
+            <small class="form-hint">Lascia vuoto per il modello predefinito. L'elenco mostra i modelli davvero installati in Ollama.</small>
+          </div>
+
+          <div class="form-group">
+            <label for="input-vision-model">Modello per analizzare le immagini</label>
+            <input type="text" id="input-vision-model" placeholder="nvidia:nvidia/nemotron-3-nano-omni-30b-a3b-reasoning oppure openrouter:nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free" />
+            <small class="form-hint">Questo modello legge foto e schermate, poi Adam riceve la descrizione insieme alla tua richiesta. Per OpenRouter è preimpostato Nemotron Nano Omni. Le immagini vengono inviate al provider indicato: evita foto riservate se la sua informativa non le consente.</small>
+          </div>
+
+          <div class="form-group">
+            <label for="input-coder-model">Modello Coder (Sub-agente per riscrittura codice)</label>
+            <input type="text" id="input-coder-model" list="coder-model-list" placeholder="es. claude-3-7-sonnet-20250219 oppure qwen2.5-coder:7b (vuoto = disattivato)" />
+            <datalist id="coder-model-list">
+              <option value="claude-3-7-sonnet-20250219" label="Claude 3.7 Sonnet (Anthropic)"></option>
+              <option value="claude-3-5-sonnet-20241022" label="Claude 3.5 Sonnet (Anthropic)"></option>
+              <option value="gpt-4o" label="GPT-4o (OpenAI)"></option>
+              <option value="deepseek-coder" label="DeepSeek Coder (DeepSeek)"></option>
+            </datalist>
+            <small class="form-hint">Lascia vuoto per disattivare il Coder. Puoi scegliere sia modelli Cloud (Claude Code, GPT, DeepSeek) che modelli locali Ollama (es. qwen2.5-coder:7b).</small>
+          </div>
+          <div class="form-group form-check">
+            <input type="checkbox" id="check-disable-coder" />
+            <label for="check-disable-coder">
+              <strong>Disattiva modello Coder</strong>
+              <div class="hint">Quando attivato, il modello Coder verrà disattivato indipendentemente dalla selezione sopra.</div>
+            </label>
+          </div>
+
+          <div class="form-group">
+            <label for="select-effort">Quanta intelligenza usare</label>
+            <select id="select-effort">
+              <option value="low">Bassa &mdash; risposte rapide, poco ragionamento</option>
+              <option value="medium">Media &mdash; equilibrio</option>
+              <option value="high">Alta &mdash; consigliata</option>
+              <option value="xhigh">Molto alta &mdash; lenta</option>
+              <option value="max">Massima &mdash; la piu&#768; lenta</option>
+            </select>
+            <small class="form-hint" id="effort-hint">Con il provider Anthropic agisce <code>--effort</code>. Con un provider locale quel flag viene ignorato (misurato), quindi lo Studio traduce il livello in istruzioni nel prompt e in un budget di ragionamento (<code>MAX_THINKING_TOKENS</code>): su un problema complesso il ragionamento passa da 2.300 a 7.850 caratteri. <strong>Sulla velocit&agrave; incide poco</strong>: il tempo di risposta &egrave; dominato dai ~35.000 token di prompt di sistema rielaborati quando la cache non tiene, non dal livello scelto.</small>
+          </div>
+
+          <div class="form-group">
+            <label for="select-engine">Motore Terminale (Engine)</label>
+            <select id="select-engine">
+              <option value="claude">Claude Code (Anthropic CLI)</option>
+              <option value="opencode">OpenCode (NVIDIA NIM / Multi-provider)</option>
+            </select>
+            <small class="form-hint">Il motore si imposta <strong>automaticamente</strong> quando cambi provider dalla tendina in alto (Anthropic e modelli locali → Claude Code; OpenRouter/NVIDIA/Ashna → OpenCode). Qui puoi comunque forzarlo manualmente.</small>
+          </div>
+
+          <div class="form-group">
+            <label for="select-provider">Provider del modello principale</label>
+            <select id="select-provider">
+              <option value="anthropic">Anthropic ufficiale (account o API key)</option>
+              <option value="openrouter">OpenRouter (Centinaia di modelli)</option>
+              <option value="nvidia">NVIDIA NIM Cloud (Llama 3.2, DeepSeek, Nemotron)</option>
+              <option value="ashna">Ashna AI (Dynamic Routing, Claude-3.7, Gemini, Ashna-X1)</option>
+              <option value="cerebras">Cerebras Cloud (Llama 3.1/3.3 ultra-veloce)</option>
+              <option value="openai">OpenAI (GPT-4o, o1, o3-mini)</option>
+              <option value="deepseek">DeepSeek (V3 Chat, R1 Reasoner)</option>
+              <option value="gemini">Google Gemini AI Studio</option>
+              <option value="groq">Groq Cloud (Llama 3.3, R1 Distill)</option>
+              <option value="mistral">Mistral AI (Codestral, Mistral Large)</option>
+              <option value="ollama">Ollama locale (nessun costo)</option>
+              <option value="custom">Personalizzato / altro proxy</option>
+            </select>
+            <small class="form-hint" id="provider-hint">Scegli il provider predefinito. Puoi comunque selezionare direttamente qualsiasi modello nella tendina in alto.</small>
+          </div>
+
+          <!-- SEZIONE CHIAVI API SEPARATE PER QUALSIASI PROVIDER -->
+          <div class="api-keys-manager">
+            <div class="api-keys-header">
+              <div class="api-keys-header-title">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"></path>
+                </svg>
+                <span>Chiavi API & Provider (Campi Separati)</span>
+              </div>
+              <button type="button" class="btn-verify-all-keys" id="btn-verify-all-keys" title="Verifica la raggiungibilità e i crediti di tutte le chiavi inserite e scarica i modelli">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+                <span>Verifica Tutte e Scarica Modelli</span>
+              </button>
+            </div>
+            <div id="all-keys-summary" class="form-hint" style="display:none; padding: 6px 10px; border-radius: 4px; font-weight: 500;"></div>
+
+            <div class="api-keys-list">
+              <!-- 1. OpenRouter -->
+              <div class="api-key-card" data-provider="openrouter">
+                <div class="api-key-card-header">
+                  <span class="api-key-provider-title">🌐 OpenRouter</span>
+                  <span class="api-key-cost-badge free">Gratis + Crediti</span>
+                </div>
+                <div class="api-key-input-row">
+                  <input type="password" id="input-key-openrouter" placeholder="sk-or-v1-..." autocomplete="off" />
+                  <button type="button" class="btn-toggle-key-visibility" title="Mostra/Nascondi">👁️</button>
+                  <button type="button" class="btn-verify-single-key" data-provider="openrouter">Verifica</button>
+                </div>
+                <div class="key-status-feedback idle" id="key-feedback-openrouter">Nessuna chiave inserita</div>
+              </div>
+
+              <!-- 2. NVIDIA NIM -->
+              <div class="api-key-card" data-provider="nvidia">
+                <div class="api-key-card-header">
+                  <span class="api-key-provider-title">⚡ NVIDIA NIM Cloud</span>
+                  <span class="api-key-cost-badge free">Free Tier (1000 crediti)</span>
+                </div>
+                <div class="api-key-input-row">
+                  <input type="password" id="input-key-nvidia" placeholder="nvapi-..." autocomplete="off" />
+                  <button type="button" class="btn-toggle-key-visibility" title="Mostra/Nascondi">👁️</button>
+                  <button type="button" class="btn-verify-single-key" data-provider="nvidia">Verifica</button>
+                </div>
+                <div class="key-status-feedback idle" id="key-feedback-nvidia">Nessuna chiave inserita</div>
+              </div>
+
+              <!-- 3. Ashna AI -->
+              <div class="api-key-card" data-provider="ashna">
+                <div class="api-key-card-header">
+                  <span class="api-key-provider-title">🤖 Ashna AI (Dynamic Routing)</span>
+                  <span class="api-key-cost-badge free">Routing Attivo</span>
+                </div>
+                <div class="api-key-input-row">
+                  <input type="password" id="input-key-ashna" placeholder="cwAK... oppure token Ashna" autocomplete="off" />
+                  <button type="button" class="btn-toggle-key-visibility" title="Mostra/Nascondi">👁️</button>
+                  <button type="button" class="btn-verify-single-key" data-provider="ashna">Verifica</button>
+                </div>
+                <div class="key-status-feedback idle" id="key-feedback-ashna">Nessuna chiave inserita</div>
+              </div>
+
+              <!-- 4. Cerebras Cloud -->
+              <div class="api-key-card" data-provider="cerebras">
+                <div class="api-key-card-header">
+                  <span class="api-key-provider-title">⚡ Cerebras Cloud</span>
+                  <span class="api-key-cost-badge free">Free Tier (1M tok/giorno)</span>
+                </div>
+                <div class="api-key-input-row">
+                  <input type="password" id="input-key-cerebras" placeholder="csk-..." autocomplete="off" />
+                  <button type="button" class="btn-toggle-key-visibility" title="Mostra/Nascondi">👁️</button>
+                  <button type="button" class="btn-verify-single-key" data-provider="cerebras">Verifica</button>
+                </div>
+                <div class="key-status-feedback idle" id="key-feedback-cerebras">Nessuna chiave inserita</div>
+              </div>
+
+              <!-- 5. OpenAI -->
+              <div class="api-key-card" data-provider="openai">
+                <div class="api-key-card-header">
+                  <span class="api-key-provider-title">🟢 OpenAI (GPT-4o, o1, o3)</span>
+                  <span class="api-key-cost-badge paid">A Crediti</span>
+                </div>
+                <div class="api-key-input-row">
+                  <input type="password" id="input-key-openai" placeholder="sk-..." autocomplete="off" />
+                  <button type="button" class="btn-toggle-key-visibility" title="Mostra/Nascondi">👁️</button>
+                  <button type="button" class="btn-verify-single-key" data-provider="openai">Verifica</button>
+                </div>
+                <div class="key-status-feedback idle" id="key-feedback-openai">Nessuna chiave inserita</div>
+              </div>
+
+              <!-- 6. DeepSeek -->
+              <div class="api-key-card" data-provider="deepseek">
+                <div class="api-key-card-header">
+                  <span class="api-key-provider-title">🐋 DeepSeek (V3, R1)</span>
+                  <span class="api-key-cost-badge paid">A Crediti</span>
+                </div>
+                <div class="api-key-input-row">
+                  <input type="password" id="input-key-deepseek" placeholder="sk-..." autocomplete="off" />
+                  <button type="button" class="btn-toggle-key-visibility" title="Mostra/Nascondi">👁️</button>
+                  <button type="button" class="btn-verify-single-key" data-provider="deepseek">Verifica</button>
+                </div>
+                <div class="key-status-feedback idle" id="key-feedback-deepseek">Nessuna chiave inserita</div>
+              </div>
+
+              <!-- 7. Google Gemini -->
+              <div class="api-key-card" data-provider="gemini">
+                <div class="api-key-card-header">
+                  <span class="api-key-provider-title">✨ Google Gemini AI Studio</span>
+                  <span class="api-key-cost-badge free">Free Tier</span>
+                </div>
+                <div class="api-key-input-row">
+                  <input type="password" id="input-key-gemini" placeholder="AIzaSy..." autocomplete="off" />
+                  <button type="button" class="btn-toggle-key-visibility" title="Mostra/Nascondi">👁️</button>
+                  <button type="button" class="btn-verify-single-key" data-provider="gemini">Verifica</button>
+                </div>
+                <div class="key-status-feedback idle" id="key-feedback-gemini">Nessuna chiave inserita</div>
+              </div>
+
+              <!-- 8. Groq Cloud -->
+              <div class="api-key-card" data-provider="groq">
+                <div class="api-key-card-header">
+                  <span class="api-key-provider-title">⚡ Groq Cloud (Llama 3.3, R1)</span>
+                  <span class="api-key-cost-badge free">Free Tier Veloce</span>
+                </div>
+                <div class="api-key-input-row">
+                  <input type="password" id="input-key-groq" placeholder="gsk_..." autocomplete="off" />
+                  <button type="button" class="btn-toggle-key-visibility" title="Mostra/Nascondi">👁️</button>
+                  <button type="button" class="btn-verify-single-key" data-provider="groq">Verifica</button>
+                </div>
+                <div class="key-status-feedback idle" id="key-feedback-groq">Nessuna chiave inserita</div>
+              </div>
+
+              <!-- 9. Mistral AI -->
+              <div class="api-key-card" data-provider="mistral">
+                <div class="api-key-card-header">
+                  <span class="api-key-provider-title">🌪️ Mistral AI (Codestral, Mistral Large)</span>
+                  <span class="api-key-cost-badge paid">A Crediti</span>
+                </div>
+                <div class="api-key-input-row">
+                  <input type="password" id="input-key-mistral" placeholder="Chiave API Mistral..." autocomplete="off" />
+                  <button type="button" class="btn-toggle-key-visibility" title="Mostra/Nascondi">👁️</button>
+                  <button type="button" class="btn-verify-single-key" data-provider="mistral">Verifica</button>
+                </div>
+                <div class="key-status-feedback idle" id="key-feedback-mistral">Nessuna chiave inserita</div>
+              </div>
+
+              <!-- 10. Anthropic -->
+              <div class="api-key-card" data-provider="anthropic">
+                <div class="api-key-card-header">
+                  <span class="api-key-provider-title">🧠 Anthropic</span>
+                  <span class="api-key-cost-badge paid">A Crediti (o OAuth)</span>
+                </div>
+                <div class="api-key-input-row">
+                  <input type="password" id="input-key-anthropic" placeholder="sk-ant-api03-..." autocomplete="off" />
+                  <button type="button" class="btn-toggle-key-visibility" title="Mostra/Nascondi">👁️</button>
+                  <button type="button" class="btn-verify-single-key" data-provider="anthropic">Verifica</button>
+                </div>
+                <div class="key-status-feedback idle" id="key-feedback-anthropic">Nessuna chiave inserita (usa OAuth browser se vuota)</div>
+              </div>
+
+              <!-- 11. Provider Personalizzato / Altro Proxy -->
+              <div class="api-key-card" data-provider="custom">
+                <div class="api-key-card-header">
+                  <span class="api-key-provider-title">⚙️ Personalizzato / Altro Proxy OpenAI o Ollama Remoto</span>
+                  <span class="api-key-cost-badge free">Personalizzato</span>
+                </div>
+                <div id="custom-endpoints-container" style="display: flex; flex-direction: column; gap: 8px;">
+                  <!-- Custom endpoints will be dynamically added here -->
+                </div>
+                <button type="button" class="btn btn-secondary" id="btn-add-custom-endpoint" style="margin-top: 8px; align-self: flex-start;">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 6px; vertical-align: middle;">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                  </svg>
+                  Aggiungi Endpoint
+                </button>
+                <div class="key-status-feedback idle" id="key-feedback-custom">Nessun endpoint configurato</div>
+              </div>
+            </div>
+            <!-- Campi legacy nascosti per garantire compatibilita' totale -->
+            <input type="hidden" id="input-api-key" />
+            <input type="hidden" id="input-auth-token" />
+            <input type="hidden" id="input-base-url" />
+          </div>
+
+          <div class="form-group">
+            <label for="select-font-size">Dimensione Testo Terminale</label>
+            <select id="select-font-size">
+              <option value="12">12 px - Compatto</option>
+              <option value="14" selected>14 px - Standard (Consigliato)</option>
+              <option value="16">16 px - Grande</option>
+              <option value="18">18 px - Molto Grande</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer modal-footer-credit">
+          <span class="credit">NotExist Intelligience Studio &middot; di <strong>0Not_Exist0</strong></span>
+          <div class="footer-buttons">
+            <button class="btn btn-secondary" id="btn-cancel-settings">Annulla</button>
+            <button class="btn btn-primary" id="btn-save-settings">Salva e Riavvia Adam</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal: Change Directory -->
+    <div class="modal-backdrop" id="modal-dir">
+      <div class="modal-card">
+        <div class="modal-header">
+          <div class="modal-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+            </svg>
+            Seleziona Cartella di Lavoro
+          </div>
+          <button class="modal-close" id="btn-close-dir">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="input-target-dir">Percorso cartella sul computer</label>
+            <input type="text" id="input-target-dir" placeholder="C:\Users\..." />
+            <small class="form-hint">Claude Code lavorerà e modificherà i file all'interno di questo percorso.</small>
+          </div>
+
+          <div class="shortcuts-group">
+            <label>Scorciatoie Rapide:</label>
+            <div class="shortcut-chips" id="shortcut-chips-container">
+              <!-- Loaded via JS -->
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" id="btn-cancel-dir">Annulla</button>
+          <button class="btn btn-primary" id="btn-save-dir">Apri Cartella e Avvia Adam</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal: File Viewer -->
+    <div class="modal-backdrop" id="modal-file-viewer">
+      <div class="modal-card modal-lg">
+        <div class="modal-header">
+          <div class="modal-title file-viewer-title">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+            </svg>
+            <span id="viewer-filename">File</span>
+            <span class="file-size-badge" id="viewer-filesize">0 KB</span>
+          </div>
+          <button class="modal-close" id="btn-close-viewer">&times;</button>
+        </div>
+        <div class="modal-body modal-viewer-body">
+          <div class="viewer-path" id="viewer-filepath"></div>
+          <pre class="code-view" id="viewer-code-content"></pre>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" id="btn-copy-path">Copia Percorso</button>
+          <button class="btn btn-primary" id="btn-ask-claude-file">Chiedi ad Adam su questo file</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal: Web & Network Access -->
+    <div class="modal-backdrop" id="modal-network">
+      <div class="modal-card">
+        <div class="modal-header">
+          <div class="modal-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="2" y1="12" x2="22" y2="12"></line>
+              <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+            </svg>
+            Accesso Web & Rete Locale
+          </div>
+          <button class="modal-close" id="btn-close-network">&times;</button>
+        </div>
+        <div class="modal-body">
+          <p class="form-hint" style="margin-bottom: 8px;">
+            Il server è in ascolto su <code>0.0.0.0</code> ed è raggiungibile via browser sia da questo computer che da smartphone, tablet o altri PC nella stessa rete Wi-Fi/LAN.
+          </p>
+
+          <div class="network-links-container" id="network-links-container">
+            <!-- Loaded dynamically with IP addresses and copy buttons -->
+          </div>
+
+          <!-- QR Code Preview -->
+          <div class="qr-preview-box">
+            <div class="qr-title">Scansiona con Smartphone o Tablet:</div>
+            <div class="qr-code-svg-wrapper" id="qr-code-container">
+              <!-- SVG QR generated dynamically -->
+            </div>
+            <span class="qr-hint" id="qr-url-hint">Apri fotocamera per connetterti</span>
+          </div>
+
+          <!-- Remote / Web Tunneling Guide -->
+          <div class="remote-tunnel-box">
+            <div class="tunnel-header">
+              <span class="tunnel-icon">☁</span>
+              <strong>Vuoi raggiungerlo da fuori casa / via Internet pubblico?</strong>
+            </div>
+            <p class="tunnel-desc">
+              Puoi avviare un tunnel sicuro e gratuito con Cloudflare in un solo comando nel tuo terminale:
+            </p>
+            <div class="code-copy-row">
+              <code id="cf-tunnel-cmd">cloudflared tunnel --url http://localhost:3456</code>
+              <button class="btn-copy-code" id="btn-copy-cf-cmd">Copia</button>
+            </div>
+            <p class="tunnel-desc" style="margin-top: 6px;">
+              Oppure tramite ngrok: <code>ngrok http 3456</code>
+            </p>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" id="btn-dismiss-network">Chiudi</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Full-Screen Interactive Neural Brain Visualizer Modal -->
+    <div class="neural-modal-backdrop" id="brain-view-modal">
+      <div class="neural-studio-container">
+        <!-- Top Visualizer Bar -->
+        <div class="neural-topbar">
+          <div class="neural-brand">
+            <div class="brain-icon-glow">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="18" cy="5" r="3"></circle>
+                <circle cx="6" cy="12" r="3"></circle>
+                <circle cx="18" cy="19" r="3"></circle>
+                <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+              </svg>
+            </div>
+            <div class="neural-title-block">
+              <span class="neural-title">Mappa Neurale Claude Code</span>
+              <span class="neural-subtitle" id="brain-project-label">Progetto: Intelligience Studio</span>
+            </div>
+          </div>
+
+          <!-- Scope Filter Tabs -->
+          <div class="neural-scope-filters">
+            <button class="scope-pill active" data-scope="all">Tutti i Neuroni</button>
+            <button class="scope-pill" data-scope="project">Memoria Progetto</button>
+            <button class="scope-pill" data-scope="global">Memoria Globale</button>
+          </div>
+
+          <!-- Type Filters -->
+          <div class="neural-type-filters">
+            <button class="type-filter-chip active" data-type="all">Tutti</button>
+            <button class="type-filter-chip chip-var" data-type="variable">Variabili</button>
+            <button class="type-filter-chip chip-step" data-type="step">Passaggi</button>
+            <button class="type-filter-chip chip-data" data-type="data">Dati</button>
+            <button class="type-filter-chip chip-rule" data-type="rule">Regole</button>
+            <button class="type-filter-chip chip-goal" data-type="goal">Obiettivi</button>
+          </div>
+
+          <!-- Search & Controls -->
+          <div class="neural-top-tools">
+            <div class="search-input-wrapper">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+              <input type="text" id="brain-search-input" placeholder="Cerca nel cervello..." />
+            </div>
+
+            <button class="btn btn-secondary btn-sm" id="btn-brain-center" title="Ripristina visuale centrata">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="3"></circle>
+                <path d="M3 12h3m12 0h3M12 3v3m0 12v3"></path>
+              </svg>
+              <span>Centra</span>
+            </button>
+
+            <button class="btn btn-primary btn-sm" id="btn-brain-add-node">
+              <span>+ Nuovo Neurone</span>
+            </button>
+
+            <button class="btn btn-secondary btn-sm" id="btn-close-brain-view" title="Chiudi e torna al Terminale">
+              <span>✕ Chiudi</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Canvas Body with Inspector Drawer -->
+        <div class="neural-workspace">
+          <div class="neural-canvas-wrapper" id="neural-canvas-container">
+            <!-- Canvas is mounted here -->
+          </div>
+
+          <!-- Right Inspector Drawer -->
+          <aside class="neuron-inspector hidden" id="neuron-inspector">
+            <div class="inspector-header">
+              <div class="inspector-title-row">
+                <span class="inspector-badge-scope" id="insp-scope-badge">PROGETTO</span>
+                <span class="inspector-badge-type" id="insp-type-badge">VARIABILE</span>
+              </div>
+              <button class="modal-close" id="btn-close-inspector">&times;</button>
+            </div>
+
+            <div class="inspector-body">
+              <div class="insp-field">
+                <label for="insp-input-label">Etichetta Neurone</label>
+                <input type="text" id="insp-input-label" />
+              </div>
+
+              <div class="insp-field">
+                <label for="insp-input-value">Valore / Dati / Contenuto</label>
+                <textarea id="insp-input-value" rows="4"></textarea>
+              </div>
+
+              <div class="insp-field">
+                <label for="insp-input-tags">Tags</label>
+                <input type="text" id="insp-input-tags" />
+              </div>
+
+              <!-- Synapses (Connected Neurons) -->
+              <div class="insp-synapses-section">
+                <div class="synapses-title">
+                  <span>Sinapsi Attive (<span id="insp-synapses-count">0</span>)</span>
+                  <button class="btn-text-action" id="btn-toggle-add-synapse">+ Collega</button>
+                </div>
+
+                <!-- Add Synapse Inline Box -->
+                <div class="add-synapse-box hidden" id="add-synapse-box">
+                  <select id="select-synapse-target">
+                    <!-- Populated dynamically -->
+                  </select>
+                  <input type="text" id="input-synapse-label" placeholder="Relazione (es: dipende da, ascolta su...)" />
+                  <div class="form-buttons-row">
+                    <button class="btn btn-secondary btn-sm" id="btn-cancel-synapse" type="button">Annulla</button>
+                    <button class="btn btn-primary btn-sm" id="btn-confirm-add-synapse" type="button">Collega</button>
+                  </div>
+                </div>
+
+                <div class="synapses-list" id="insp-synapses-list">
+                  <!-- Synapse chips loaded dynamically -->
+                </div>
+              </div>
+            </div>
+
+            <div class="inspector-footer">
+              <button class="btn btn-secondary btn-sm" id="btn-delete-neuron" style="color: #ef4444;" type="button">Elimina</button>
+              <button class="btn btn-primary btn-sm" id="btn-save-inspector" type="button">Salva Modifiche</button>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Diagnostica -->
+    <div class="modal-backdrop" id="modal-diagnostics">
+      <div class="modal-card">
+        <div class="modal-header">
+          <div class="modal-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+            </svg>
+            Diagnostica della sessione
+          </div>
+          <button class="modal-close" id="btn-close-diagnostics">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="diag-list" id="diag-list">
+            <div class="diag-loading">Controllo in corso...</div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" id="btn-refresh-diagnostics">Ricontrolla</button>
+          <button class="btn btn-primary" id="btn-cancel-diagnostics">Chiudi</button>
+        </div>
+      </div>
+    </div>
+
+  <!-- Vendors & Scripts -->
+  <script src="/vendor/@xterm/xterm/lib/xterm.js"></script>
+  <script src="/vendor/@xterm/addon-fit/lib/addon-fit.js"></script>
+  <script src="/vendor/@xterm/addon-web-links/lib/addon-web-links.js"></script>
+  <script src="neural-brain.js"></script>
+  <script src="chat-ui.js?v=4"></script>
+  <script src="app.js"></script>
+  <script src="file-live.js"></script>
+  <script src="editor-visivo.js"></script>
+</body>
+</html>

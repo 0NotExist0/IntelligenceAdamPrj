@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<title>FPS a blocchi - multiplayer</title>
+<link rel="icon" href="data:,">
+
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; overflow: hidden; background: #87ceeb; font-family: system-ui, Arial, sans-serif; color: #fff; }
+  canvas { display: block; }
+
+  #hud { position: fixed; top: 12px; left: 12px; z-index: 5; font-size: 16px; text-shadow: 0 1px 3px #000; line-height: 1.6; pointer-events: none; }
+  #hud b { font-size: 20px; }
+  #rete { position: fixed; top: 12px; right: 12px; z-index: 5; font-size: 14px; text-shadow: 0 1px 3px #000; pointer-events: none; text-align: right; }
+
+  /* Il mirino: due trattini incrociati al centro dello schermo. */
+  #mirino { position: fixed; top: 50%; left: 50%; width: 22px; height: 22px; margin: -11px 0 0 -11px; z-index: 5; pointer-events: none; }
+  #mirino::before, #mirino::after { content: ''; position: absolute; background: #fff; box-shadow: 0 0 2px #000; }
+  #mirino::before { left: 0; right: 0; top: 10px; height: 2px; }
+  #mirino::after { top: 0; bottom: 0; left: 10px; width: 2px; }
+
+  #inizio { position: fixed; inset: 0; z-index: 10; display: flex; flex-direction: column; align-items: center; justify-content: center;
+            gap: 18px; background: rgba(10, 16, 30, 0.88); text-align: center; padding: 20px; }
+  /* Senza questa riga il pannello NON sparisce al clic: "display: flex" qui sopra batte l'attributo
+     hidden, e si resta a guardare il menu credendo che il gioco non parta. */
+  #inizio[hidden] { display: none; }
+  #inizio h1 { margin: 0; font-size: clamp(28px, 6vw, 48px); }
+  #inizio p { margin: 0; max-width: 520px; line-height: 1.6; font-size: 16px; }
+  #gioca { padding: 14px 34px; font-size: 20px; border: 0; border-radius: 10px; background: #33aa55; color: #fff; cursor: pointer; }
+  #gioca:hover { background: #3cc464; }
+</style>
+</head>
+<body>
+
+<div id="mirino" hidden></div>
+
+<div id="hud" hidden>
+  <div>Vita: <b id="vita">100</b></div>
+  <div>Munizioni: <b id="munizioni">30</b></div>
+  <div>Punti: <b id="punti">0</b></div>
+</div>
+
+<div id="rete" hidden>
+  <div id="statoRete">collegamento…</div>
+  <div id="elencoGiocatori"></div>
+</div>
+
+<div id="inizio">
+  <h1>FPS a blocchi</h1>
+  <p>Muoviti con <b>W A S D</b>, salta con <b>Spazio</b>, guarda con il <b>mouse</b>, spara con il <b>tasto sinistro</b>.
+     Premi <b>Esc</b> per liberare il mouse.</p>
+  <p>Per giocare in due: apri <b>http://localhost:8000</b> in due finestre.</p>
+  <button id="gioca">Clicca per giocare</button>
+  <p id="avvisoRete"></p>
+</div>
+
+<script type="module" src="gioco.js"></script>
+</body>
+</html>

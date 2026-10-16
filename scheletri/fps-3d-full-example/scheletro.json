@@ -1,0 +1,18 @@
+{
+  "titolo": "FPS Adventure 3D (Three.js / Web, modello Blender con IK, zombie e pistola)",
+  "linguaggio": "JavaScript / Web (Three.js)",
+  "cosaFaGia": [
+    "avventura FPS/TPS 3D nel browser",
+    "modelli 3D da Blender (personaggio, pistola, zombie)",
+    "cinematica inversa IK per le gambe",
+    "combattimento con pistola e pugno melee",
+    "IA zombie con inseguimento e attacco"
+  ],
+  "come": "npm run dev oppure avvia.bat (server Vite)",
+  "serve": "Node.js e browser",
+  "file": {
+    "index.html": "pagina e interfaccia WebGL",
+    "main.js": "motore di gioco Three.js",
+    "public/": "modelli 3D glb e texture"
+  }
+}
