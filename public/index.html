@@ -11,13 +11,22 @@
   <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-  <!-- Schermata di avvio. Rimossa dal DOM appena finisce o al primo clic:
-       un video da 10 secondi non deve mai diventare un ostacolo. -->
-  <div class="boot-overlay" id="boot-overlay">
-    <video id="boot-video" muted playsinline autoplay preload="auto">
-      <source src="/media/bootapp.mp4?v=2" type="video/mp4">
+  <!-- Schermata di avvio: il video originale introduce l'app e resta sempre
+       saltabile. La UI sottostante continua a inizializzarsi in parallelo. -->
+  <div class="boot-overlay" id="boot-overlay" role="dialog" aria-modal="true" aria-label="Avvio di NotExist Intelligience Studio">
+    <video id="boot-video" muted playsinline autoplay preload="auto" aria-label="Animazione di avvio">
+      <source src="/media/bootapp.mp4?v=3" type="video/mp4">
+      Il browser non supporta il video di avvio.
     </video>
-    <button class="boot-skip" id="boot-skip" type="button">Salta</button>
+    <div class="boot-loading" id="boot-loading" aria-hidden="true">
+      <span class="boot-loading-dot"></span>
+      <span>Avvio Studio</span>
+    </div>
+    <div class="boot-actions">
+      <button class="boot-control" id="boot-audio" type="button" aria-pressed="false">Audio</button>
+      <button class="boot-control boot-skip" id="boot-skip" type="button">Salta</button>
+    </div>
+    <div class="boot-progress" aria-hidden="true"><span id="boot-progress-bar"></span></div>
   </div>
 
   <div class="app-layout">

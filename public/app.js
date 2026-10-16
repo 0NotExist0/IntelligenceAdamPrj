@@ -4360,22 +4360,71 @@ function svuotaConsoleAnteprima() {
 // ============================================================
 
 function initBoot() {
-  console.log('[Boot Video] Disabling boot video overlay as requested');
   const overlay = document.getElementById('boot-overlay');
-  if (overlay && overlay.parentNode) {
-    console.log('[Boot Video] Removing boot overlay from DOM');
-    overlay.parentNode.removeChild(overlay);
-  } else {
-    console.log('[Boot Video] Boot overlay not found or already removed');
+  const video = document.getElementById('boot-video');
+  const skip = document.getElementById('boot-skip');
+  const audio = document.getElementById('boot-audio');
+  const progress = document.getElementById('boot-progress-bar');
+  if (!overlay || !video) return;
+
+  let chiuso = false;
+  let timeoutSicurezza = null;
+
+  function chiudiBoot(motivo) {
+    if (chiuso) return;
+    chiuso = true;
+    if (timeoutSicurezza) clearTimeout(timeoutSicurezza);
+    document.removeEventListener('keydown', tastoBoot);
+    overlay.classList.add('uscita');
+    video.pause();
+    console.log('[Boot Video] Chiuso:', motivo);
+    setTimeout(function () {
+      if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
+    }, 600);
   }
-  // Anche rimuovi qualsiasi riferimento allo storage per evitare conflitti
-  try {
-    sessionStorage.removeItem('boot-visto');
-    console.log('[Boot Video] Cleared boot-visto from sessionStorage');
-  } catch (e) {
-    console.warn('[Boot Video] Could not clear sessionStorage:', e);
+
+  function tastoBoot(event) {
+    if (event.key === 'Escape' || event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      chiudiBoot('tastiera');
+    }
   }
-  console.log('[Boot Video] Boot video disablement complete');
+
+  function segnaPronto() {
+    overlay.classList.add('pronto');
+  }
+
+  video.addEventListener('loadeddata', segnaPronto, { once: true });
+  video.addEventListener('canplay', segnaPronto, { once: true });
+  video.addEventListener('ended', function () { chiudiBoot('fine video'); }, { once: true });
+  video.addEventListener('error', function () { chiudiBoot('video non disponibile'); }, { once: true });
+  video.addEventListener('timeupdate', function () {
+    if (!progress || !Number.isFinite(video.duration) || video.duration <= 0) return;
+    progress.style.width = Math.min(100, (video.currentTime / video.duration) * 100) + '%';
+  });
+
+  if (skip) skip.addEventListener('click', function () { chiudiBoot('salta'); });
+  if (audio) {
+    audio.addEventListener('click', function () {
+      video.muted = !video.muted;
+      audio.setAttribute('aria-pressed', String(!video.muted));
+      audio.textContent = video.muted ? 'Audio' : 'Audio attivo';
+      if (video.paused) video.play().catch(function () {});
+    });
+  }
+  document.addEventListener('keydown', tastoBoot);
+
+  if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    chiudiBoot('movimento ridotto');
+    return;
+  }
+
+  if (video.readyState >= 2) segnaPronto();
+  const riproduzione = video.play();
+  if (riproduzione && typeof riproduzione.catch === 'function') {
+    riproduzione.catch(function () { chiudiBoot('autoplay non disponibile'); });
+  }
+  timeoutSicurezza = setTimeout(function () { chiudiBoot('timeout di sicurezza'); }, 12000);
 }
 
 // ============================================================

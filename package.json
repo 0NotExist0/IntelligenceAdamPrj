@@ -12,6 +12,7 @@
     "test:model-picker": "node test/model-provider-picker.test.js",
     "test:fcc-proxy": "node test/fcc-proxy.test.js",
     "test:git-push": "node test/git-push-verificato.test.js",
+    "test:boot": "node test/boot-video.test.js",
     "test:allegati": "node test/allegati-chat.test.js",
     "test:esploratrice": "node test/esploratrice.test.js",
     "test:unit": "node test/apprendimento-memoria.test.js && node test/rilevatore-risposte-incomplete.test.js && node test/confronto-misure.test.js && node test/collaudatore.test.js && node test/istantanee.test.js && node test/guardiano-letture.test.js && node test/pertinenza.test.js && node test/scheletri-copia.test.js && node test/scrittura-live.test.js && node test/capo-progetto.test.js && node test/cambiamenti.test.js && node test/ripristina.test.js && node test/archivio-chat.test.js && node test/editor-visivo.test.js && node test/sveglie.test.js && node test/regole-esame.test.js && node test/programmatore.test.js && node test/siti-consigliati.test.js && node test/documentazione.test.js && node test/suggerimenti-prossimi-passi.test.js && node test/whatsapp-protettore.test.js && node test/openrouter.test.js && node test/proxy-openai.test.js && node test/vision-router.test.js && node test/limiti-claude-code.test.js && node test/cervello.test.js",
