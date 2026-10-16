@@ -108,9 +108,23 @@ function tokenUguali(a, b) {
   return left.length > 0 && left.length === right.length && crypto.timingSafeEqual(left, right);
 }
 
-function richiestaDiReteAutorizzata(req) {
+function richiestaInoltrataDaProxy(req) {
+  const headers = req.headers || {};
+  return !!(
+    headers['cf-connecting-ip'] ||
+    headers['cf-ray'] ||
+    headers['x-forwarded-for'] ||
+    headers['x-real-ip']
+  );
+}
+
+function richiestaLocaleDiretta(req) {
   const remote = req.socket && req.socket.remoteAddress;
-  if (indirizzoLoopback(remote)) return true;
+  return indirizzoLoopback(remote) && !richiestaInoltrataDaProxy(req);
+}
+
+function richiestaDiReteAutorizzata(req) {
+  if (richiestaLocaleDiretta(req)) return true;
   if (!LAN_ENABLED) return false;
   return tokenUguali(tokenRichiesta(req), STUDIO_API_TOKEN);
 }
@@ -371,6 +385,10 @@ app.use('/api', function (req, res, next) {
   if (richiestaDiReteAutorizzata(req)) return next();
   res.status(401).json({ error: 'Accesso locale richiesto o token LAN non valido' });
 });
+app.use('/preview', function (req, res, next) {
+  if (richiestaDiReteAutorizzata(req)) return next();
+  res.status(401).send('Accesso locale richiesto o token LAN non valido');
+});
 
 // ==========================================
 // Proxy Anthropic → OpenAI per provider non-Anthropic
@@ -397,7 +415,7 @@ const anthropicProxyHandler = createAnthropicProxyHandler(
   }
 );
 app.post('/v1/messages', function (req, res, next) {
-  if (!indirizzoLoopback(req.socket && req.socket.remoteAddress)) {
+  if (!richiestaLocaleDiretta(req)) {
     return res.status(403).json({ error: { type: 'forbidden', message: 'Il proxy modelli accetta solo processi locali.' } });
   }
   const currentProvider = config.provider || 'anthropic';

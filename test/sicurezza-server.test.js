@@ -82,6 +82,13 @@ try {
     /richiede sia STUDIO_ALLOW_LAN=1 sia un STUDIO_API_TOKEN esplicito/.test(server));
   check('API e WebSocket condividono il controllo di accesso',
     /function richiestaDiReteAutorizzata/.test(server) && /verifyClient: function/.test(server));
+  check('i tunnel reverse proxy non vengono scambiati per traffico locale',
+    /function richiestaInoltrataDaProxy/.test(server) &&
+    /headers\['cf-connecting-ip'\]/.test(server) &&
+    /indirizzoLoopback\(remote\) && !richiestaInoltrataDaProxy\(req\)/.test(server));
+  check('anteprima e proxy modelli non sono esposti dal tunnel',
+    /app\.use\('\/preview'[\s\S]*richiestaDiReteAutorizzata/.test(server) &&
+    /app\.post\('\/v1\/messages'[\s\S]*!richiestaLocaleDiretta\(req\)/.test(server));
   check('le richieste cross-origin vengono respinte', /Origine non autorizzata/.test(server) && /origineConsentita/.test(server));
   check('in modalita\' locale anche il DNS rebinding viene respinto',
     /!LAN_ENABLED && !indirizzoLoopback\(parsed\.hostname\)/.test(server) && /replace\(\/\^\\\[\|\\\]\$\/g, ''\)/.test(server));
